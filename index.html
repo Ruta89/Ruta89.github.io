@@ -1,48 +1,146 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="pl">
 <head>
-  <script data-ionic="inject">
-    (function(w){var i=w.Ionic=w.Ionic||{};i.version='3.7.1';i.angular='4.4.3';i.staticDir='build/';})(window);
-  </script>
-  <meta charset="UTF-8">
-  <title>Ionic App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="format-detection" content="telephone=no">
-  <meta name="msapplication-tap-highlight" content="no">
-
-  <link rel="icon" type="image/x-icon" href="assets/icon/favicon.ico">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4e8ef7">
- 
-  <!-- cordova.js required for cordova apps -->
-  <script src="cordova.js"></script>
-
-  <!-- un-comment this code to enable service worker
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(() => console.log('service worker installed'))
-        .catch(err => console.error('Error', err));
-    }
-  </script>-->
-
-  <link href="build/main.css" rel="stylesheet">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Czasomierz PWA</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a2e">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="glass-container">
+        <h1>Czasomierz</h1>
+        <div class="timer-container" style="position: relative; width: 220px; height: 220px; margin: 0 auto 30px auto; display: flex; align-items: center; justify-content: center;">
+            <svg class="progress-ring" width="220" height="220" style="position: absolute; top: 0; left: 0; transform: rotate(-90deg);">
+                <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.1)" stroke-width="8" fill="transparent" r="100" cx="110" cy="110"/>
+                <circle class="progress-ring__circle" stroke="#4ade80" stroke-width="8" stroke-linecap="round" fill="transparent" r="100" cx="110" cy="110" stroke-dasharray="628.318" stroke-dashoffset="0" style="transition: stroke-dashoffset 1s linear, stroke 0.5s;"/>
+            </svg>
+            <div id="clockDisplay" style="margin: 0; z-index: 10;">00:00:00</div>
+        </div>
+        
+        <div id="endTimeDisplay" class="end-time">Koniec: --:--:--</div>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 25px;">
+            <div style="display: flex; gap: 10px;">
+                <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                    <label for="tonnage" style="font-size: 0.8rem;">Tonaż [t]:</label>
+                    <select id="tonnage">
+                        <option value="0.5">0.5 t</option>
+                        <option value="1.0">1.0 t</option>
+                        <option value="1.5">1.5 t</option>
+                        <option value="2.0">2.0 t</option>
+                        <option value="3.0">3.0 t</option>
+                        <option value="4.0">4.0 t</option>
+                        <option value="5.0">5.0 t</option>
+                        <option value="6.0">6.0 t</option>
+                        <option value="8.0">8.0 t</option>
+                        <option value="10.0">10.0 t</option>
+                        <option value="12.0">12.0 t</option>
+                        <option value="15.0">15.0 t</option>
+                        <option value="20.0">20.0 t</option>
+                        <option value="25.0">25.0 t</option>
+                        <option value="30.0">30.0 t</option>
+                        <option value="35.0">35.0 t</option>
+                        <option value="40.0">40.0 t</option>
+                        <option value="45.0">45.0 t</option>
+                        <option value="50.0">50.0 t</option>
+                        <option value="60.0">60.0 t</option>
+                        <option value="70.0">70.0 t</option>
+                        <option value="80.0">80.0 t</option>
+                        <option value="90.0">90.0 t</option>
+                        <option value="100.0">100.0 t</option>
+                        <option value="125.0">125.0 t</option>
+                        <option value="150.0">150.0 t</option>
+                        <option value="180.0">180.0 t</option>
+                        <option value="200.0">200.0 t</option>
+                        <option value="250.0">250.0 t</option>
+                        <option value="300.0">300.0 t</option>
+                    </select>
+                </div>
+                <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                    <label for="length" style="font-size: 0.8rem;">L1 [m]:</label>
+                    <input type="number" id="length" step="0.25" min="0.25" placeholder="np. 1.0">
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                    <label for="pieces" style="font-size: 0.8rem;">Sztuki:</label>
+                    <input type="number" id="pieces" min="1" placeholder="np. 10">
+                </div>
+                <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                    <label for="timeInput" style="font-size: 0.8rem;">Czas [h] (np 0.5):</label>
+                    <input type="number" id="timeInput" step="0.01" min="0.01" placeholder="Czas">
+                </div>
+            </div>
+        </div>
+        
+        <div id="calcResults" style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; margin-bottom: 20px; font-size: 0.9rem; text-align: left; display: none;">
+            <div class="results-top-row">
+                <div class="result-highlight"><span>Ustaw licznik na:</span><strong id="out-counter" style="color: #4ade80;">-</strong></div>
+                <div class="result-highlight"><span>Ilość szpul:</span><strong id="out-spools" style="color: #4ade80;">-</strong></div>
+                <div class="result-highlight"><span>Przędza:</span><strong id="out-dtex" style="color: #4ade80;">-</strong></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:5px;"><span>Waga 1 sztuki:</span><strong id="out-unit-weight" style="color: #4ade80;">-</strong></div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:5px;"><span>Waga zlecenia:</span><strong id="out-weight" style="color: #4ade80;">-</strong></div>
+            <div style="display:flex; justify-content:space-between;"><span>Wymiana szpul co:</span><strong id="out-exchange" style="color: #fca5a5;">-</strong></div>
+        </div>
 
-  <!-- Ionic's root component and where the app will load -->
-  <ion-app></ion-app>
+        <div class="btn-group">
+            <button id="startBtn" class="btn primary">⏱️ Start</button>
+            <button id="pauseBtn" class="btn primary" style="background: #f59e0b; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); display: none;">⏸️ Pauza</button>
+            <button id="resumeBtn" class="btn primary" style="background: #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); display: none;">▶️ Wznów</button>
+            <button id="stopBtn" class="btn primary" style="background: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); display: none;">🛑 Koniec</button>
+        </div>
+        
+        <div id="statusMessage" class="status-message"></div>
 
-  <!-- The polyfills js is generated during the build process -->
-  <script src="build/polyfills.js"></script>
+        <div class="history-box" style="margin-top: 30px; text-align: left;">
+            <h3 style="margin-top:0; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; margin-bottom: 15px;">📜 Dziennik Produkcji</h3>
+            <div id="history-list"></div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn secondary" onclick="clearHistory()" style="font-size: 0.8rem; padding: 8px;">🗑️ Wyczyść</button>
+                <button class="btn" onclick="exportCSV()" style="font-size: 0.8rem; padding: 8px; background: #22c55e; color: #fff;">📥 Eksport CSV</button>
+            </div>
+        </div>
+    </div>
 
-   <!-- The vendor js is generated during the build process
-      and contains all code in `node_modules` -->
-  <script src="build/vendor.js"></script>
+    <nav class="app-nav">
+        <a href="index.html" class="active"><span class="icon">⏱️</span>Czasomierz</a>
+        <a href="1.html"><span class="icon">⚙️</span>Kalkulator</a>
+        <a href="2.html"><span class="icon">🏭</span>Asystent</a>
+    </nav>
 
-  <!-- The bundle js is generated during the build process -->
-  <script src="build/main.js"></script>
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color:#333;">Edytuj Zlecenie</h3>
+            <input type="hidden" id="edit-id">
+            <div style="margin-bottom:10px; text-align:left;">
+                <label style="color:#333;font-size:14px;font-weight:bold;">Tonaż [t]:</label>
+                <input type="text" id="edit-ton" disabled style="background:#e2e8f0; color:#666;">
+            </div>
+            <div style="margin-bottom:10px; text-align:left;">
+                <label style="color:#333;font-size:14px;font-weight:bold;">Długość L1 [m]:</label>
+                <input type="text" id="edit-l1" disabled style="background:#e2e8f0; color:#666;">
+            </div>
+            <div style="margin-bottom:10px; text-align:left;">
+                <label style="color:#333;font-size:14px;font-weight:bold;">Zrobione sztuki:</label>
+                <input type="number" id="edit-pieces" min="1" inputmode="numeric" style="background:#fff; color:#333; border: 2px solid #ccc;">
+            </div>
+            <div style="margin-bottom:20px; text-align:left;">
+                <label style="color:#333;font-size:14px;font-weight:bold;">Wykorzystany czas [min]:</label>
+                <input type="number" id="edit-time" step="0.1" min="0.1" inputmode="decimal" style="background:#fff; color:#333; border: 2px solid #ccc;">
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" onclick="saveEdit()" style="background:#27ae60; color:white;">Zapisz</button>
+                <button class="btn" onclick="closeEdit()" style="background:#7f8c8d; color:white;">Anuluj</button>
+            </div>
+        </div>
+    </div>
 
+    <script src="script.js"></script>
 </body>
 </html>
