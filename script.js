@@ -39,13 +39,13 @@ document.addEventListener('DOMContentLoaded', () => {
         "6.0": { spools: 3, cnt1: 22, cnt2: 44, wgt1: 1.040, wgt2: 2.037 },
         "8.0": { spools: 3, cnt1: 30, cnt2: 60, wgt1: 1.372, wgt2: 2.703 }, 
         "10.0":{ spools: 4, cnt1: 30, cnt2: 60, wgt1: 1.830, wgt2: 3.604 },
-        "12.0":{ spools: 6, cnt1: 28, cnt2: 56, wgt1: 2.329, wgt2: 4.658 },
-        "15.0":{ spools: 6, cnt1: 36, cnt2: 72, wgt1: 2.990, wgt2: 5.980 },
-        "20.0":{ spools: 12, cnt1: 26, cnt2: 52, wgt1: 4.326, wgt2: 8.652 },
-        "25.0":{ spools: 12, cnt1: 32, cnt2: 64, wgt1: 5.320, wgt2: 10.640 },
-        "30.0":{ spools: 12, cnt1: 38, cnt2: 76, wgt1: 6.323, wgt2: 12.646 },
-        "35.0":{ spools: 12, cnt1: 44, cnt2: 88, wgt1: 7.320, wgt2: 14.640 },
-        "40.0":{ spools: 12, cnt1: 50, cnt2: 100, wgt1: 8.320, wgt2: 16.640 },
+        "12.0":{ spools: 6, cnt1: 14, cnt2: 28, wgt1: 1.331, wgt2: 2.578 },
+        "15.0":{ spools: 6, cnt1: 18, cnt2: 36, wgt1: 1.663, wgt2: 3.243 },
+        "20.0":{ spools: 12, cnt1: 11, cnt2: 22, wgt1: 2.162, wgt2: 4.158 },
+        "25.0":{ spools: 12, cnt1: 12, cnt2: 24, wgt1: 2.328, wgt2: 4.491 },
+        "30.0":{ spools: 12, cnt1: 13, cnt2: 26, wgt1: 2.495, wgt2: 4.823 },
+        "35.0":{ spools: 12, cnt1: 17, cnt2: 34, wgt1: 3.160, wgt2: 6.154 },
+        "40.0":{ spools: 12, cnt1: 20, cnt2: 40, wgt1: 3.659, wgt2: 7.152 },
         "45.0":{ spools: 12, cnt1: 54, cnt2: 108, wgt1: 8.990, wgt2: 17.980 },
         "50.0":{ spools: 12, cnt1: 64, cnt2: 128, wgt1: 10.649, wgt2: 21.298 },
         "60.0":{ spools: 12, cnt1: 76, cnt2: 152, wgt1: 12.650, wgt2: 25.300 },
@@ -706,6 +706,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         targetTime = parseInt(localStorage.getItem('activeTimer_targetTime'), 10) || 0;
         startTimeDate = parseInt(localStorage.getItem('activeTimer_startTimeDate'), 10) || 0;
+        isPaused = localStorage.getItem('activeTimer_isPaused') === 'true';
+        totalPausedMs = parseInt(localStorage.getItem('activeTimer_totalPausedMs'), 10) || 0;
+        pauseStart = parseInt(localStorage.getItem('activeTimer_pauseStart'), 10) || 0;
+        originalTotalMs = parseInt(localStorage.getItem('activeTimer_originalTotalMs'), 10) || 0;
         
         calculateValues();
         
@@ -731,7 +735,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             updateDisplay();
-            timerInterval = setInterval(updateDisplay, 1000);
+            if (isPaused) {
+                if (!pauseStart) pauseStart = Date.now();
+                if (pauseBtn) pauseBtn.style.display = 'none';
+                if (resumeBtn) resumeBtn.style.display = 'inline-block';
+                endTimeDisplay.textContent = 'Trwa pauza...';
+            } else {
+                if (pauseBtn) pauseBtn.style.display = 'inline-block';
+                if (resumeBtn) resumeBtn.style.display = 'none';
+                timerInterval = setInterval(updateDisplay, 1000);
+                requestWakeLock();
+            }
         }
     }
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'czasomierz-cache-v3';
+const CACHE_NAME = 'czasomierz-cache-v4';
 const urlsToCache = [
   './',
   './index.html',
@@ -27,9 +27,20 @@ self.addEventListener('fetch', event => {
         if (response) {
             return response;
         }
-        return fetch(event.request).catch(() => {
-            // fallback offline page / behavior if needed
-        });
+        return fetch(event.request)
+          .then(networkResponse => {
+            if (event.request.method === 'GET' && event.request.url.startsWith(self.location.origin)) {
+              const responseToCache = networkResponse.clone();
+              caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
+            }
+            return networkResponse;
+          })
+          .catch(() => {
+            if (event.request.mode === 'navigate') {
+              return caches.match('./index.html');
+            }
+            return new Response('Offline', { status: 503, statusText: 'Offline' });
+          });
       })
   );
 });
