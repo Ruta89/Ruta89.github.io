@@ -32,20 +32,20 @@ document.addEventListener('DOMContentLoaded', () => {
         "0.5": { spools: 1, cnt1: 20, cnt2: 40, wgt1: 0.159, wgt2: 0.312 },
         "1.0": { spools: 1, cnt1: 20, cnt2: 40, wgt1: 0.159, wgt2: 0.312 },
         "1.5": { spools: 1, cnt1: 26, cnt2: 52, wgt1: 0.201, wgt2: 0.395 },
-        "2.0": { spools: 2, cnt1: 20, cnt2: 40, wgt1: 0.395, wgt2: 0.700 },
+        "2.0": { spools: 2, cnt1: 20, cnt2: 40, wgt1: 0.319, wgt2: 0.624 },
         "3.0": { spools: 3, cnt1: 20, cnt2: 40, wgt1: 0.478, wgt2: 0.936 },
         "4.0": { spools: 4, cnt1: 20, cnt2: 40, wgt1: 0.638, wgt2: 1.247 },
         "5.0": { spools: 2, cnt1: 26, cnt2: 52, wgt1: 0.804, wgt2: 1.580 },
         "6.0": { spools: 3, cnt1: 22, cnt2: 44, wgt1: 1.040, wgt2: 2.037 },
         "8.0": { spools: 3, cnt1: 30, cnt2: 60, wgt1: 1.372, wgt2: 2.703 }, 
         "10.0":{ spools: 4, cnt1: 30, cnt2: 60, wgt1: 1.830, wgt2: 3.604 },
-        "12.0":{ spools: 6, cnt1: 14, cnt2: 28, wgt1: 1.331, wgt2: 2.578 },
-        "15.0":{ spools: 6, cnt1: 18, cnt2: 36, wgt1: 1.663, wgt2: 3.243 },
-        "20.0":{ spools: 12, cnt1: 11, cnt2: 22, wgt1: 2.162, wgt2: 4.158 },
-        "25.0":{ spools: 12, cnt1: 12, cnt2: 24, wgt1: 2.328, wgt2: 4.491 },
-        "30.0":{ spools: 12, cnt1: 13, cnt2: 26, wgt1: 2.495, wgt2: 4.823 },
-        "35.0":{ spools: 12, cnt1: 17, cnt2: 34, wgt1: 3.160, wgt2: 6.154 },
-        "40.0":{ spools: 12, cnt1: 20, cnt2: 40, wgt1: 3.659, wgt2: 7.152 },
+        "12.0":{ spools: 6, cnt1: 28, cnt2: 56, wgt1: 2.578, wgt2: 5.073 },
+        "15.0":{ spools: 6, cnt1: 36, cnt2: 72, wgt1: 3.243, wgt2: 6.403 },
+        "20.0":{ spools: 12, cnt1: 22, cnt2: 44, wgt1: 4.158, wgt2: 8.150 },
+        "25.0":{ spools: 12, cnt1: 24, cnt2: 48, wgt1: 4.491, wgt2: 8.815 },
+        "30.0":{ spools: 12, cnt1: 26, cnt2: 52, wgt1: 4.823, wgt2: 9.480 },
+        "35.0":{ spools: 12, cnt1: 34, cnt2: 68, wgt1: 6.154, wgt2: 12.141 },
+        "40.0":{ spools: 12, cnt1: 40, cnt2: 80, wgt1: 7.152, wgt2: 14.137 },
         "45.0":{ spools: 12, cnt1: 54, cnt2: 108, wgt1: 8.990, wgt2: 17.980 },
         "50.0":{ spools: 12, cnt1: 64, cnt2: 128, wgt1: 10.649, wgt2: 21.298 },
         "60.0":{ spools: 12, cnt1: 76, cnt2: 152, wgt1: 12.650, wgt2: 25.300 },
@@ -99,8 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let final_unit_wgt = (m_wgt * L1) + add_wgt;
         let total_wgt = final_unit_wgt * pieces;
 
-        let isLarge = parseFloat(t_val) >= 5.0;
-        let dtex = isLarge ? "132 000" : "66 000";
+        let isAbove4t = parseFloat(t_val) > 4.0;
+        let dtex = isAbove4t ? "132 000" : "66 000";
 
         let exchange_pieces = Math.floor(t.spools * 15 / final_unit_wgt);
 
@@ -451,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveOnEnter = (e) => {
         if (e.key === 'Enter') {
             if (timeInput.value && lengthInput.value && piecesInput.value) {
-                // Automatycznie rozpocznij rónież odliczanie
+                // Automatycznie rozpocznij również odliczanie
                 startBtn.click();
                 timeInput.blur();
                 piecesInput.blur();
