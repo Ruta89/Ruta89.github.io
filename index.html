@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Czasomierz PWA</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a1a2e">
@@ -102,8 +102,8 @@
             <h3 style="margin-top:0; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; margin-bottom: 15px;">📓 Dziennik Produkcji</h3>
             <div id="history-list"></div>
             <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button class="btn secondary" onclick="clearHistory()" style="font-size: 0.8rem; padding: 8px;">🗑️ Wyczyść</button>
-                <button class="btn" onclick="exportCSV()" style="font-size: 0.8rem; padding: 8px; background: #22c55e; color: #fff;">📄 Eksport CSV</button>
+                <button id="clearHistoryBtn" class="btn secondary history-action-btn">🗑️ Wyczyść</button>
+                <button id="exportCsvBtn" class="btn export-btn history-action-btn">📄 Eksport CSV</button>
             </div>
         </div>
     </div>
@@ -133,8 +133,8 @@
                 <input type="number" id="edit-time" step="0.1" min="0.1" inputmode="decimal" style="background:#fff; color:#333; border: 2px solid #ccc;">
             </div>
             <div style="display:flex; gap:10px;">
-                <button class="btn" onclick="saveEdit()" style="background:#27ae60; color:white;">Zapisz</button>
-                <button class="btn" onclick="closeEdit()" style="background:#7f8c8d; color:white;">Anuluj</button>
+                <button id="saveEditBtn" class="btn save-edit-btn">Zapisz</button>
+                <button id="closeEditBtn" class="btn cancel-edit-btn">Anuluj</button>
             </div>
         </div>
     </div>

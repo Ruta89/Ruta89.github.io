@@ -1,4 +1,4 @@
-const CACHE_NAME = 'czasomierz-cache-v4';
+const CACHE_NAME = 'czasomierz-cache-v5';
 const urlsToCache = [
   './',
   './index.html',
@@ -18,6 +18,12 @@ self.addEventListener('install', event => {
         return cache.addAll(urlsToCache);
       })
   );
+});
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', event => {
@@ -56,6 +62,6 @@ self.addEventListener('activate', event => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });

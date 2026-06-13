@@ -135,15 +135,35 @@ document.addEventListener('DOMContentLoaded', () => {
     let audioCtx = null;
     let alarmTimeout = null;
 
-    if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-        Notification.requestPermission();
-    }
-
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('Service Worker registered.', reg.scope))
+                .then(reg => {
+                    console.log('Service Worker registered.', reg.scope);
+
+                    if (reg.waiting) {
+                        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    }
+
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        if (!newWorker) return;
+
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                newWorker.postMessage({ type: 'SKIP_WAITING' });
+                            }
+                        });
+                    });
+                })
                 .catch(err => console.log('Service Worker registration failed:', err));
+        });
+
+        let refreshingAfterUpdate = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshingAfterUpdate) return;
+            refreshingAfterUpdate = true;
+            window.location.reload();
         });
     }
 
@@ -545,13 +565,46 @@ document.addEventListener('DOMContentLoaded', () => {
         window.renderHistory();
     }
 
+    function clearElement(element) {
+        while (element.firstChild) {
+            element.removeChild(element.firstChild);
+        }
+    }
+
+    function createTextElement(tagName, className, text) {
+        const element = document.createElement(tagName);
+        if (className) element.className = className;
+        element.textContent = text;
+        return element;
+    }
+
+    function createHistoryCell(label, text) {
+        const cell = document.createElement('td');
+        cell.dataset.label = label;
+        cell.textContent = text;
+        return cell;
+    }
+
+    function createHistoryActionButton(action, id, className, text, label) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `btn-icon ${className}`;
+        button.dataset.action = action;
+        button.dataset.id = String(id);
+        button.setAttribute('aria-label', label);
+        button.textContent = text;
+        return button;
+    }
+
     window.renderHistory = function() {
         let history = getHistory();
         let listDiv = document.getElementById("history-list");
         if(!listDiv) return;
+
+        clearElement(listDiv);
         
         if(history.length === 0) {
-            listDiv.innerHTML = '<div style="font-size: 0.9rem; color: rgba(255,255,255,0.5); margin-bottom:15px;">Brak zrobionych zleceń.</div>';
+            listDiv.appendChild(createTextElement('div', 'empty-history', 'Brak zrobionych zlece\u0144.'));
             return;
         }
 
@@ -559,65 +612,107 @@ document.addEventListener('DOMContentLoaded', () => {
         [...history].reverse().forEach(item => {
             let day = item.dayStr || new Date(item.id).toLocaleDateString('pl-PL');
             let time = item.timeStr || new Date(item.id).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+            let parsedTime = parseFloat(item.time) || 0;
+            let parsedActualTime = item.actualTime !== undefined ? parseFloat(item.actualTime) : parsedTime;
             
             if(!groups[day]) groups[day] = { items: [], totalTime: 0, totalActualTime: 0 };
             
-            item.dispDay = day;
-            item.dispTime = time;
-            item.parsedTime = parseFloat(item.time) || 0;
-            item.parsedActualTime = item.actualTime !== undefined ? parseFloat(item.actualTime) : item.parsedTime;
-            
-            groups[day].items.push(item);
-            groups[day].totalTime += item.parsedTime;
-            groups[day].totalActualTime += item.parsedActualTime;
+            groups[day].items.push({
+                ...item,
+                dispDay: day,
+                dispTime: time,
+                parsedTime,
+                parsedActualTime
+            });
+            groups[day].totalTime += parsedTime;
+            groups[day].totalActualTime += parsedActualTime;
         });
 
-        let html = "";
-        
-        for (let day in groups) {
+        Object.keys(groups).forEach(day => {
             let g = groups[day];
             let percent = Math.min((g.totalActualTime / 450) * 100, 100).toFixed(0);
-            let overTimeMsg = g.totalActualTime > 450 ? `<span style="color:#f1c40f; margin-left:5px; font-size:12px;">(+${(g.totalActualTime-450).toFixed(1)} min)</span>` : "";
 
-            html += `
-            <div class="daily-group">
-                <div class="daily-header">
-                    <div>📅 ${day}</div>
-                    <div class="progress-container">
-                        ⏱️ Faktycznie: ${g.totalActualTime.toFixed(1)} / 450 min ${overTimeMsg}
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width:${percent}%; background:${g.totalActualTime >= 450 ? '#f39c12' : '#4ade80'};"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="hist-table">
-                        <tr><th>Godz</th><th>Tonaż</th><th>L1 [m]</th><th>Szt.</th><th>Czas (Min)</th><th>Kg</th><th>Opcje</th></tr>
-            `;
-            
-            g.items.forEach(item => {
-                html += `<tr>
-                    <td data-label="Godz:">${item.dispTime}</td>
-                    <td data-label="Tonaż:"><b>${item.ton} t</b></td>
-                    <td data-label="L1 [m]:">${item.l1}</td>
-                    <td data-label="Szt.:">${item.pieces}</td>
-                    <td data-label="Czas:" style="white-space:nowrap; font-size:0.75rem; text-align:right;">
-                        <span style="color:#4ade80;">Norma: <b>${item.parsedTime.toFixed(1)}</b></span><br>
-                        <span style="color:#fcd34d;">Fakt: <b>${item.parsedActualTime.toFixed(1)}</b></span>
-                    </td>
-                    <td data-label="Kg:">${item.weight}</td>
-                    <td data-label="Opcje:" style="white-space:nowrap; text-align:right;">
-                        <button class="btn-icon" style="background:#f39c12; color:white;" onclick="openEdit(${item.id})">✏️</button>
-                        <button class="btn-icon" style="background:#ef4444; color:white;" onclick="deleteItem(${item.id})">🗑️</button>
-                    </td>
-                </tr>`;
+            const dailyGroup = document.createElement('div');
+            dailyGroup.className = 'daily-group';
+
+            const header = document.createElement('div');
+            header.className = 'daily-header';
+            header.appendChild(createTextElement('div', null, 'Data: ' + day));
+
+            const progressContainer = document.createElement('div');
+            progressContainer.className = 'progress-container';
+            progressContainer.appendChild(createTextElement('span', null, 'Faktycznie: ' + g.totalActualTime.toFixed(1) + ' / 450 min'));
+
+            if (g.totalActualTime > 450) {
+                progressContainer.appendChild(createTextElement('span', 'overtime-note', `(+${(g.totalActualTime - 450).toFixed(1)} min)`));
+            }
+
+            const progressBarBg = document.createElement('div');
+            progressBarBg.className = 'progress-bar-bg';
+            const progressBarFill = document.createElement('div');
+            progressBarFill.className = `progress-bar-fill ${g.totalActualTime >= 450 ? 'is-over' : ''}`;
+            progressBarFill.style.width = `${percent}%`;
+            progressBarBg.appendChild(progressBarFill);
+            progressContainer.appendChild(progressBarBg);
+            header.appendChild(progressContainer);
+            dailyGroup.appendChild(header);
+
+            const tableWrap = document.createElement('div');
+            tableWrap.className = 'table-responsive';
+            const table = document.createElement('table');
+            table.className = 'hist-table';
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            ['Godz', 'Tona\u017c', 'L1 [m]', 'Szt.', 'Czas (Min)', 'Kg', 'Opcje'].forEach(label => {
+                headerRow.appendChild(createTextElement('th', null, label));
             });
-            html += `</table></div></div>`;
-        }
-        
-        listDiv.innerHTML = html;
-    }
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
 
+            const tbody = document.createElement('tbody');
+            g.items.forEach(item => {
+                const row = document.createElement('tr');
+                row.appendChild(createHistoryCell('Godz:', item.dispTime));
+
+                const tonCell = document.createElement('td');
+                tonCell.dataset.label = 'Tona\u017c:';
+                tonCell.appendChild(createTextElement('b', null, `${item.ton} t`));
+                row.appendChild(tonCell);
+
+                row.appendChild(createHistoryCell('L1 [m]:', item.l1));
+                row.appendChild(createHistoryCell('Szt.:', item.pieces));
+
+                const timeCell = document.createElement('td');
+                timeCell.dataset.label = 'Czas:';
+                timeCell.className = 'history-time-cell';
+                const norm = document.createElement('span');
+                norm.className = 'history-time-norm';
+                norm.append('Norma: ', createTextElement('b', null, item.parsedTime.toFixed(1)));
+                const actual = document.createElement('span');
+                actual.className = 'history-time-actual';
+                actual.append('Fakt: ', createTextElement('b', null, item.parsedActualTime.toFixed(1)));
+                timeCell.append(norm, document.createElement('br'), actual);
+                row.appendChild(timeCell);
+
+                row.appendChild(createHistoryCell('Kg:', item.weight));
+
+                const actionCell = document.createElement('td');
+                actionCell.dataset.label = 'Opcje:';
+                actionCell.className = 'history-actions-cell';
+                actionCell.append(
+                    createHistoryActionButton('edit', item.id, 'edit-history-btn', 'Edytuj', 'Edytuj zlecenie'),
+                    createHistoryActionButton('delete', item.id, 'delete-history-btn', 'Usu\u0144', 'Usu\u0144 zlecenie')
+                );
+                row.appendChild(actionCell);
+                tbody.appendChild(row);
+            });
+
+            table.appendChild(tbody);
+            tableWrap.appendChild(table);
+            dailyGroup.appendChild(tableWrap);
+            listDiv.appendChild(dailyGroup);
+        });
+    }
     window.deleteItem = function(id) {
         if(!confirm("Na pewno usunąć to zlecenie z historii?")) return;
         let history = getHistory().filter(i => i.id !== id);
@@ -678,26 +773,59 @@ document.addEventListener('DOMContentLoaded', () => {
         let history = getHistory();
         if(history.length === 0) return alert("Brak danych do wyeksportowania!");
 
-        let csv = "Data;Godzina;Tonaz [t];Dlugosc L1 [m];Sztuki;Czas wykonania (Norma) [min];Czas Faktyczny [min];Laczna waga [kg]\n";
+        const csvEscape = value => {
+            const text = String(value ?? '');
+            if (/[;"\r\n]/.test(text)) {
+                return `"${text.replace(/"/g, '""')}"`;
+            }
+            return text;
+        };
+
+        const rows = [["Data", "Godzina", "Tonaz [t]", "Dlugosc L1 [m]", "Sztuki", "Czas wykonania (Norma) [min]", "Czas Faktyczny [min]", "Laczna waga [kg]"]];
         
         history.forEach(i => {
             let d = i.dayStr || new Date(i.id).toLocaleDateString('pl-PL');
             let t = i.timeStr || new Date(i.id).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
             let act = i.actualTime !== undefined ? i.actualTime : i.time;
-            csv += `${d};${t};${i.ton};${i.l1};${i.pieces};${i.time};${act};${i.weight}\n`;
+            rows.push([d, t, i.ton, i.l1, i.pieces, i.time, act, i.weight]);
         });
 
+        let csv = "\uFEFF" + rows.map(row => row.map(csvEscape).join(';')).join('\n');
         let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         let link = document.createElement("a");
         let url = URL.createObjectURL(blob);
         link.href = url;
-        link.download = `Historia_Czasomierz_${new Date().toLocaleDateString('pl-PL').replace(/\\./g, '-')}.csv`;
+        link.download = `Historia_Czasomierz_${new Date().toLocaleDateString('pl-PL').replace(/\./g, '-')}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     }
-    
-    // Restore z localStorage w razie ubicia karty
+
+    const historyList = document.getElementById("history-list");
+    if (historyList) {
+        historyList.addEventListener('click', e => {
+            const button = e.target.closest('[data-action][data-id]');
+            if (!button) return;
+
+            const id = parseInt(button.dataset.id, 10);
+            if (button.dataset.action === 'edit') window.openEdit(id);
+            if (button.dataset.action === 'delete') window.deleteItem(id);
+        });
+    }
+
+    const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+    if (clearHistoryBtn) clearHistoryBtn.addEventListener('click', window.clearHistory);
+
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+    if (exportCsvBtn) exportCsvBtn.addEventListener('click', window.exportCSV);
+
+    const saveEditBtn = document.getElementById("saveEditBtn");
+    if (saveEditBtn) saveEditBtn.addEventListener('click', window.saveEdit);
+
+    const closeEditBtn = document.getElementById("closeEditBtn");
+    if (closeEditBtn) closeEditBtn.addEventListener('click', window.closeEdit);
+        // Restore z localStorage w razie ubicia karty
     if (localStorage.getItem('activeTimer_running') === 'true') {
         if (localStorage.getItem('activeTimer_tonnage')) tonnageInput.value = localStorage.getItem('activeTimer_tonnage');
         if (localStorage.getItem('activeTimer_length')) lengthInput.value = localStorage.getItem('activeTimer_length');
