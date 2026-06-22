@@ -30,6 +30,12 @@
     padding: 0;
 }
 
+button,
+input,
+select {
+    font: inherit;
+}
+
 body {
     font-family: 'Inter', sans-serif;
     color: var(--text-color);
@@ -83,6 +89,29 @@ body.bg-red {
     transition: transform 0.3s ease;
 }
 
+.timer-shell {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    margin: 0 auto 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.clock-display {
+    margin: 0;
+    z-index: 10;
+}
+
 h1 {
     font-weight: 800;
     font-size: 2rem;
@@ -96,11 +125,20 @@ h1 {
     text-align: left;
 }
 
+.input-group.compact {
+    flex: 1;
+    margin-bottom: 0;
+}
+
 .input-group label {
     display: block;
     margin-bottom: 10px;
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.8);
+}
+
+.compact-label {
+    font-size: 0.8rem;
 }
 
 input[type="number"], select {
@@ -111,7 +149,7 @@ input[type="number"], select {
     background: rgba(255, 255, 255, 0.05);
     color: white;
     font-size: 1.1rem;
-    font-family: 'Inter', sans-serif;
+    line-height: 1.2;
     outline: none;
     transition: all 0.3s ease;
     -webkit-appearance: none;
@@ -130,12 +168,33 @@ input[type="number"]:focus, select:focus {
     box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.15);
 }
 
+input[type="number"]:focus-visible,
+select:focus-visible,
+.btn:focus-visible,
+.btn-icon:focus-visible,
+.app-nav a:focus-visible {
+    outline: 3px solid rgba(74, 222, 128, 0.7);
+    outline-offset: 2px;
+}
+
 .btn-group {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     justify-content: center;
     margin-bottom: 30px;
+}
+
+.input-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.input-row {
+    display: flex;
+    gap: 10px;
 }
 
 .btn {
@@ -172,6 +231,21 @@ input[type="number"]:focus, select:focus {
     background: var(--primary-hover);
 }
 
+.btn-warn {
+    background: #f59e0b;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+.btn-info {
+    background: #3b82f6;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-danger {
+    background: #ef4444;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
 .btn.secondary {
     background: var(--secondary);
     color: #ffffff;
@@ -196,7 +270,7 @@ input[type="number"]:focus, select:focus {
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     letter-spacing: 2px;
-    margin: 20px 0;
+    margin: 0;
     line-height: 1;
     background: -webkit-linear-gradient(45deg, #4ade80, #3b82f6);
     -webkit-background-clip: text;
@@ -223,8 +297,55 @@ input[type="number"]:focus, select:focus {
     font-weight: 600;
 }
 
+.results-panel {
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    text-align: left;
+    display: none;
+}
+
+.result-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 5px;
+}
+
+.result-line:last-child {
+    margin-bottom: 0;
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
 /* Responsywność */
 @media (max-width: 600px) {
+    body {
+        align-items: flex-start;
+        padding: 16px 16px 24px 16px;
+    }
+    .timer-shell {
+        width: 190px;
+        height: 190px;
+        margin-bottom: 24px;
+    }
+    .input-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+    .history-actions {
+        flex-direction: column;
+    }
+    .history-actions .btn {
+        width: 100%;
+    }
+    .app-nav {
+        position: static;
+        margin-top: 20px;
+    }
     #clockDisplay {
         font-size: 3.5rem;
     }
@@ -269,6 +390,25 @@ input[type="number"]:focus, select:focus {
     color: var(--primary);
 }
 
+.history-panel {
+    margin-top: 30px;
+    text-align: left;
+}
+
+.panel-title {
+    margin-top: 0;
+    font-size: 1.1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.history-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
 /* Kalkulator Results Grid */
 .results-top-row {
     display: flex;
@@ -302,6 +442,15 @@ input[type="number"]:focus, select:focus {
 }
 .result-highlight strong {
     font-size: 1.15rem;
+    color: var(--primary);
+}
+
+.result-line strong {
+    color: var(--primary);
+}
+
+#out-exchange {
+    color: #fca5a5;
 }
 
 /* History Table overhauls */
@@ -357,12 +506,50 @@ input[type="number"]:focus, select:focus {
 
 .history-action-btn {
     font-size: 0.8rem;
-    padding: 8px;
+    padding: 8px 12px;
 }
 
 .export-btn {
     background: #22c55e;
     color: #fff;
+}
+
+.modal-field {
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.modal-field-last {
+    margin-bottom: 20px;
+}
+
+.modal-field label {
+    color: #333;
+    font-size: 14px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.modal-input-readonly {
+    background: #e2e8f0;
+    color: #666;
+}
+
+.modal-input-editable {
+    background: #fff;
+    color: #333;
+    border: 2px solid #ccc;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
 }
 
 .history-time-cell {
@@ -408,6 +595,7 @@ input[type="number"]:focus, select:focus {
     cursor: pointer;
     margin: 0 2px;
     color: white;
+    min-width: 0;
 }
 
 .edit-history-btn {

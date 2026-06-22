@@ -13,20 +13,20 @@
 <body>
     <div class="glass-container">
         <h1>Czasomierz</h1>
-        <div class="timer-container" style="position: relative; width: 220px; height: 220px; margin: 0 auto 30px auto; display: flex; align-items: center; justify-content: center;">
-            <svg class="progress-ring" width="220" height="220" style="position: absolute; top: 0; left: 0; transform: rotate(-90deg);">
+        <div class="timer-shell">
+            <svg class="progress-ring" width="220" height="220" aria-hidden="true">
                 <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.1)" stroke-width="8" fill="transparent" r="100" cx="110" cy="110"/>
                 <circle class="progress-ring__circle" stroke="#4ade80" stroke-width="8" stroke-linecap="round" fill="transparent" r="100" cx="110" cy="110" stroke-dasharray="628.318" stroke-dashoffset="0" style="transition: stroke-dashoffset 1s linear, stroke 0.5s;"/>
             </svg>
-            <div id="clockDisplay" style="margin: 0; z-index: 10;">00:00:00</div>
+            <div id="clockDisplay" class="clock-display" aria-live="polite" aria-atomic="true">00:00:00</div>
         </div>
         
-        <div id="endTimeDisplay" class="end-time">Koniec: --:--:--</div>
+        <div id="endTimeDisplay" class="end-time" aria-live="polite">Koniec: --:--:--</div>
         
-        <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 25px;">
-            <div style="display: flex; gap: 10px;">
-                <div class="input-group" style="flex: 1; margin-bottom: 0;">
-                    <label for="tonnage" style="font-size: 0.8rem;">Tonaż [t]:</label>
+        <div class="input-grid">
+            <div class="input-row">
+                <div class="input-group compact">
+                    <label for="tonnage" class="compact-label">Tonaż [t]:</label>
                     <select id="tonnage">
                         <option value="0.5">0.5 t</option>
                         <option value="1.0">1.0 t</option>
@@ -60,81 +60,81 @@
                         <option value="300.0">300.0 t</option>
                     </select>
                 </div>
-                <div class="input-group" style="flex: 1; margin-bottom: 0;">
-                    <label for="length" style="font-size: 0.8rem;">L1 [m]:</label>
+                <div class="input-group compact">
+                    <label for="length" class="compact-label">L1 [m]:</label>
                     <input type="number" id="length" step="0.25" min="0.25" placeholder="np. 1.0">
                 </div>
             </div>
             
-            <div style="display: flex; gap: 10px;">
-                <div class="input-group" style="flex: 1; margin-bottom: 0;">
-                    <label for="pieces" style="font-size: 0.8rem;">Sztuki:</label>
+            <div class="input-row">
+                <div class="input-group compact">
+                    <label for="pieces" class="compact-label">Sztuki:</label>
                     <input type="number" id="pieces" min="1" placeholder="np. 10">
                 </div>
-                <div class="input-group" style="flex: 1; margin-bottom: 0;">
-                    <label for="timeInput" style="font-size: 0.8rem;">Czas [h] (np 0.5):</label>
+                <div class="input-group compact">
+                    <label for="timeInput" class="compact-label">Czas [h] (np 0.5):</label>
                     <input type="number" id="timeInput" step="0.01" min="0.01" placeholder="Czas">
                 </div>
             </div>
         </div>
         
-        <div id="calcResults" style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; margin-bottom: 20px; font-size: 0.9rem; text-align: left; display: none;">
+        <div id="calcResults" class="results-panel">
             <div class="results-top-row">
-                <div class="result-highlight"><span>Ustaw licznik na:</span><strong id="out-counter" style="color: #4ade80;">-</strong></div>
-                <div class="result-highlight"><span>Ilość szpul:</span><strong id="out-spools" style="color: #4ade80;">-</strong></div>
-                <div class="result-highlight"><span>Przędza:</span><strong id="out-dtex" style="color: #4ade80;">-</strong></div>
+                <div class="result-highlight"><span>Ustaw licznik na:</span><strong id="out-counter">-</strong></div>
+                <div class="result-highlight"><span>Ilość szpul:</span><strong id="out-spools">-</strong></div>
+                <div class="result-highlight"><span>Przędza:</span><strong id="out-dtex">-</strong></div>
             </div>
-            <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:5px;"><span>Waga 1 sztuki:</span><strong id="out-unit-weight" style="color: #4ade80;">-</strong></div>
-            <div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:5px;"><span>Waga zlecenia:</span><strong id="out-weight" style="color: #4ade80;">-</strong></div>
-            <div style="display:flex; justify-content:space-between;"><span>Wymiana szpul co:</span><strong id="out-exchange" style="color: #fca5a5;">-</strong></div>
+            <div class="result-line"><span>Waga 1 sztuki:</span><strong id="out-unit-weight">-</strong></div>
+            <div class="result-line"><span>Waga zlecenia:</span><strong id="out-weight">-</strong></div>
+            <div class="result-line"><span>Wymiana szpul co:</span><strong id="out-exchange">-</strong></div>
         </div>
 
         <div class="btn-group">
-            <button id="startBtn" class="btn primary">⏱️ Start</button>
-            <button id="pauseBtn" class="btn primary" style="background: #f59e0b; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); display: none;">⏸️ Pauza</button>
-            <button id="resumeBtn" class="btn primary" style="background: #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); display: none;">▶️ Wznów</button>
-            <button id="stopBtn" class="btn primary" style="background: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); display: none;">🛑 Koniec</button>
+            <button id="startBtn" type="button" class="btn primary">⏱️ Start</button>
+            <button id="pauseBtn" type="button" class="btn primary btn-warn" style="display: none;">⏸️ Pauza</button>
+            <button id="resumeBtn" type="button" class="btn primary btn-info" style="display: none;">▶️ Wznów</button>
+            <button id="stopBtn" type="button" class="btn primary btn-danger" style="display: none;">🛑 Koniec</button>
         </div>
         
-        <div id="statusMessage" class="status-message"></div>
+        <div id="statusMessage" class="status-message" role="status" aria-live="polite"></div>
 
-        <div class="history-box" style="margin-top: 30px; text-align: left;">
-            <h3 style="margin-top:0; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; margin-bottom: 15px;">📓 Dziennik Produkcji</h3>
+        <div class="history-box history-panel">
+            <h3 class="panel-title">📓 Dziennik Produkcji</h3>
             <div id="history-list"></div>
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button id="clearHistoryBtn" class="btn secondary history-action-btn">🗑️ Wyczyść</button>
-                <button id="exportCsvBtn" class="btn export-btn history-action-btn">📄 Eksport CSV</button>
+            <div class="history-actions">
+                <button id="clearHistoryBtn" type="button" class="btn secondary history-action-btn">🗑️ Wyczyść</button>
+                <button id="exportCsvBtn" type="button" class="btn export-btn history-action-btn">📄 Eksport CSV</button>
             </div>
         </div>
     </div>
 
     <nav class="app-nav">
-        <a href="index.html" class="active"><span class="icon">⏱️</span>Czasomierz</a>
+        <a href="index.html" class="active" aria-current="page"><span class="icon">⏱️</span>Czasomierz</a>
     </nav>
 
     <div id="edit-modal" class="modal-overlay">
         <div class="modal-content">
-            <h3 style="margin-top:0; color:#333;">Edytuj Zlecenie</h3>
+            <h3>Edytuj Zlecenie</h3>
             <input type="hidden" id="edit-id">
-            <div style="margin-bottom:10px; text-align:left;">
-                <label style="color:#333;font-size:14px;font-weight:bold;">Tonaż [t]:</label>
-                <input type="text" id="edit-ton" disabled style="background:#e2e8f0; color:#666;">
+            <div class="modal-field">
+                <label for="edit-ton">Tonaż [t]:</label>
+                <input type="text" id="edit-ton" disabled class="modal-input-readonly">
             </div>
-            <div style="margin-bottom:10px; text-align:left;">
-                <label style="color:#333;font-size:14px;font-weight:bold;">Długość L1 [m]:</label>
-                <input type="text" id="edit-l1" disabled style="background:#e2e8f0; color:#666;">
+            <div class="modal-field">
+                <label for="edit-l1">Długość L1 [m]:</label>
+                <input type="text" id="edit-l1" disabled class="modal-input-readonly">
             </div>
-            <div style="margin-bottom:10px; text-align:left;">
-                <label style="color:#333;font-size:14px;font-weight:bold;">Zrobione sztuki:</label>
-                <input type="number" id="edit-pieces" min="1" inputmode="numeric" style="background:#fff; color:#333; border: 2px solid #ccc;">
+            <div class="modal-field">
+                <label for="edit-pieces">Zrobione sztuki:</label>
+                <input type="number" id="edit-pieces" min="1" inputmode="numeric" class="modal-input-editable">
             </div>
-            <div style="margin-bottom:20px; text-align:left;">
-                <label style="color:#333;font-size:14px;font-weight:bold;">Wykorzystany czas [min]:</label>
-                <input type="number" id="edit-time" step="0.1" min="0.1" inputmode="decimal" style="background:#fff; color:#333; border: 2px solid #ccc;">
+            <div class="modal-field modal-field-last">
+                <label for="edit-time">Wykorzystany czas [min]:</label>
+                <input type="number" id="edit-time" step="0.1" min="0.1" inputmode="decimal" class="modal-input-editable">
             </div>
-            <div style="display:flex; gap:10px;">
-                <button id="saveEditBtn" class="btn save-edit-btn">Zapisz</button>
-                <button id="closeEditBtn" class="btn cancel-edit-btn">Anuluj</button>
+            <div class="modal-actions">
+                <button id="saveEditBtn" type="button" class="btn save-edit-btn">Zapisz</button>
+                <button id="closeEditBtn" type="button" class="btn cancel-edit-btn">Anuluj</button>
             </div>
         </div>
     </div>

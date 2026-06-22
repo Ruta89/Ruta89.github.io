@@ -1,7 +1,9 @@
 {
   "name": "Czasomierz PWA",
   "short_name": "Czasomierz",
-  "start_url": "./index.html",
+  "id": "./",
+  "scope": "./",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#1a1a2e",

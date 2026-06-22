@@ -303,6 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
             startAlarm(); 
             // Zapis do historii po poprawnym zakończeniu timera
             window.finishEarlyAndSave(false);
+            targetTime = 0;
             
             startTimeDate = 0;
             isPaused = false;
@@ -389,6 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pauseBtn) pauseBtn.addEventListener('click', () => {
         isPaused = true;
         pauseStart = Date.now();
+        stopAlarm();
         
         if (timerInterval) {
             clearInterval(timerInterval);
@@ -507,6 +509,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.finishEarlyAndSave = function(isManualSave = false) {
+        stopAlarm();
+
         let t_val = tonnageInput.value;
         let L1 = parseFloat(lengthInput.value) || 1.0;
         let pieces = parseInt(piecesInput.value) || 1;
