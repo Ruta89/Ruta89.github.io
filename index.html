@@ -13,16 +13,6 @@
 <body>
     <div class="glass-container">
         <h1>Czasomierz</h1>
-        <div class="timer-shell">
-            <svg class="progress-ring" width="220" height="220" aria-hidden="true">
-                <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.1)" stroke-width="8" fill="transparent" r="100" cx="110" cy="110"/>
-                <circle class="progress-ring__circle" stroke="#4ade80" stroke-width="8" stroke-linecap="round" fill="transparent" r="100" cx="110" cy="110" stroke-dasharray="628.318" stroke-dashoffset="0" style="transition: stroke-dashoffset 1s linear, stroke 0.5s;"/>
-            </svg>
-            <div id="clockDisplay" class="clock-display" aria-live="polite" aria-atomic="true">00:00:00</div>
-        </div>
-        
-        <div id="endTimeDisplay" class="end-time" aria-live="polite">Koniec: --:--:--</div>
-        
         <div class="input-grid">
             <div class="input-row">
                 <div class="input-group compact">
@@ -77,8 +67,24 @@
                 </div>
             </div>
         </div>
-        
-        <div id="calcResults" class="results-panel">
+
+        <section id="timerSection" class="timer-section" hidden>
+            <h2 class="section-title">Czasomierz</h2>
+            <div class="timer-shell">
+                <svg class="progress-ring" width="220" height="220" aria-hidden="true">
+                    <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.1)" stroke-width="8" fill="transparent" r="100" cx="110" cy="110"/>
+                    <circle class="progress-ring__circle" stroke="#4ade80" stroke-width="8" stroke-linecap="round" fill="transparent" r="100" cx="110" cy="110" stroke-dasharray="628.318" stroke-dashoffset="0" style="transition: stroke-dashoffset 1s linear, stroke 0.5s;"/>
+                </svg>
+                <div id="clockDisplay" class="clock-display" aria-live="off">00:00:00</div>
+            </div>
+            <div id="endTimeDisplay" class="end-time" aria-live="polite">Koniec: --:--:--</div>
+            <div class="btn-group timer-actions">
+                <button id="startBtn" type="button" class="btn primary">⏱️ Start</button>
+                <button id="stopBtn" type="button" class="btn primary btn-danger" style="display: none;">🛑 Koniec</button>
+            </div>
+        </section>
+
+        <div id="calcResults" class="results-panel" hidden>
             <div class="results-top-row">
                 <div class="result-highlight"><span>Ustaw licznik na:</span><strong id="out-counter">-</strong></div>
                 <div class="result-highlight"><span>Ilość szpul:</span><strong id="out-spools">-</strong></div>
@@ -89,11 +95,14 @@
             <div class="result-line"><span>Wymiana szpul co:</span><strong id="out-exchange">-</strong></div>
         </div>
 
-        <div class="btn-group">
-            <button id="startBtn" type="button" class="btn primary">⏱️ Start</button>
-            <button id="pauseBtn" type="button" class="btn primary btn-warn" style="display: none;">⏸️ Pauza</button>
-            <button id="resumeBtn" type="button" class="btn primary btn-info" style="display: none;">▶️ Wznów</button>
-            <button id="stopBtn" type="button" class="btn primary btn-danger" style="display: none;">🛑 Koniec</button>
+        <div id="productionSummary" class="production-summary" hidden>
+            <h2 class="section-title">Dane z formularza</h2>
+            <dl class="summary-list">
+                <div><dt>Tonaż:</dt><dd id="summary-tonnage">—</dd></div>
+                <div><dt>Długość L1:</dt><dd id="summary-length">—</dd></div>
+                <div><dt>Liczba sztuk:</dt><dd id="summary-pieces">—</dd></div>
+                <div><dt>Planowany czas:</dt><dd id="summary-time">—</dd></div>
+            </dl>
         </div>
         
         <div id="statusMessage" class="status-message" role="status" aria-live="polite"></div>

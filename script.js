@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const timeInput = document.getElementById('timeInput');
     const startBtn = document.getElementById('startBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const resumeBtn = document.getElementById('resumeBtn');
     const stopBtn = document.getElementById('stopBtn');
     const clockDisplay = document.getElementById('clockDisplay');
     const endTimeDisplay = document.getElementById('endTimeDisplay');
@@ -27,6 +25,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const outDtex = document.getElementById('out-dtex');
     const outSpools = document.getElementById('out-spools');
     const outUnitWeight = document.getElementById('out-unit-weight');
+    const timerSection = document.getElementById('timerSection');
+    const productionSummary = document.getElementById('productionSummary');
+    const summaryTonnage = document.getElementById('summary-tonnage');
+    const summaryLength = document.getElementById('summary-length');
+    const summaryPieces = document.getElementById('summary-pieces');
+    const summaryTime = document.getElementById('summary-time');
 
     const db = {
         "0.5": { spools: 1, cnt1: 20, cnt2: 40, wgt1: 0.159, wgt2: 0.312 },
@@ -71,20 +75,55 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('activeTimer_targetTime', targetTime);
             localStorage.setItem('activeTimer_startTimeDate', startTimeDate);
             localStorage.setItem('activeTimer_running', 'true');
-            localStorage.setItem('activeTimer_isPaused', isPaused ? 'true' : 'false');
-            localStorage.setItem('activeTimer_totalPausedMs', totalPausedMs);
-            localStorage.setItem('activeTimer_pauseStart', pauseStart);
             localStorage.setItem('activeTimer_originalTotalMs', originalTotalMs);
         }
     }
 
-    function calculateValues(dontShowIfEmpty = false) {
-        if (!tonnageInput || !lengthInput || !piecesInput) return;
-        if (dontShowIfEmpty && (lengthInput.value === '' || piecesInput.value === '')) return;
+    function hasValidCalculatorData() {
+        const length = Number(lengthInput.value);
+        const pieces = Number(piecesInput.value);
 
-        let t_val = tonnageInput.value;
-        let L1 = parseFloat(lengthInput.value) || 1.0;
-        let pieces = parseInt(piecesInput.value) || 1;
+        return Boolean(db[tonnageInput.value])
+            && Number.isFinite(length) && length > 0
+            && Number.isInteger(pieces) && pieces > 0;
+    }
+
+    function hasCompleteProductionData() {
+        const time = Number(timeInput.value);
+        return hasValidCalculatorData() && Number.isFinite(time) && time > 0;
+    }
+
+    function updateProductionSummary() {
+        if (!hasCompleteProductionData()) return;
+
+        summaryTonnage.textContent = `${tonnageInput.value} t`;
+        summaryLength.textContent = `${lengthInput.value} m`;
+        summaryPieces.textContent = `${piecesInput.value} szt.`;
+        summaryTime.textContent = `${timeInput.value} h`;
+    }
+
+    function updateProductionFormState() {
+        const isComplete = hasCompleteProductionData();
+        timerSection.hidden = !isComplete;
+        calcResults.hidden = !isComplete;
+        productionSummary.hidden = !isComplete;
+
+        if (isComplete) updateProductionSummary();
+    }
+
+    function setProductionInputsDisabled(disabled) {
+        [tonnageInput, lengthInput, piecesInput, timeInput].forEach(input => {
+            input.disabled = disabled;
+        });
+    }
+
+    function calculateValues() {
+        if (!tonnageInput || !lengthInput || !piecesInput) return;
+        if (!hasValidCalculatorData()) return;
+
+        const t_val = tonnageInput.value;
+        const L1 = Number(lengthInput.value);
+        const pieces = Number(piecesInput.value);
 
         if (!db[t_val]) return;
         
@@ -104,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let exchange_pieces = Math.floor(t.spools * 15 / final_unit_wgt);
 
-        if (calcResults) calcResults.style.display = 'block';
         if (outDtex) outDtex.textContent = dtex;
         if (outSpools) outSpools.textContent = t.spools + " szt";
         if (outUnitWeight) outUnitWeight.textContent = final_unit_wgt.toFixed(2) + " kg";
@@ -113,22 +151,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (outExchange) outExchange.textContent = exchange_pieces + " szt";
     }
 
-    if (tonnageInput) tonnageInput.addEventListener('change', () => { calculateValues(); saveState(); });
-    if (lengthInput) lengthInput.addEventListener('input', () => { calculateValues(); saveState(); });
-    if (piecesInput) piecesInput.addEventListener('input', () => { calculateValues(); saveState(); });
-    if (timeInput) timeInput.addEventListener('input', () => { saveState(); });
+    function handleProductionInput() {
+        calculateValues();
+        updateProductionFormState();
+        saveState();
+    }
+
+    if (tonnageInput) tonnageInput.addEventListener('change', handleProductionInput);
+    if (lengthInput) lengthInput.addEventListener('input', handleProductionInput);
+    if (piecesInput) piecesInput.addEventListener('input', handleProductionInput);
+    if (timeInput) timeInput.addEventListener('input', handleProductionInput);
     
     // Oblicz na starcie, jeśli są domyślne wartości
-    calculateValues(true);
+    updateProductionFormState();
 
     let targetTime = 0;
     let timerInterval = null;
     let isMuted = false;
     let startTimeDate = 0;
     
-    let isPaused = false;
-    let totalPausedMs = 0;
-    let pauseStart = 0;
     let originalTotalMs = 0;
     let wakeLock = null;
     
@@ -185,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('visibilitychange', () => {
-        if (wakeLock !== null && document.visibilityState === 'visible' && !isPaused && timerInterval) {
+        if (wakeLock !== null && document.visibilityState === 'visible' && timerInterval) {
             requestWakeLock();
         }
     });
@@ -271,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateDisplay() {
         if (targetTime === 0) return;
         
-        const now = isPaused ? pauseStart : Date.now();
+        const now = Date.now();
         const remainingStr = Math.round((targetTime - now) / 1000);
         let remaining = parseInt(remainingStr, 10);
         
@@ -290,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
             else progressCircle.style.stroke = '#4ade80';
         }
 
-        if (remaining < 60 && remaining > 0 && !isPaused) {
+        if (remaining < 60 && remaining > 0) {
             startAlarm();
         }
 
@@ -306,11 +347,9 @@ document.addEventListener('DOMContentLoaded', () => {
             targetTime = 0;
             
             startTimeDate = 0;
-            isPaused = false;
             startBtn.style.display = 'inline-block';
-            if (pauseBtn) pauseBtn.style.display = 'none';
-            if (resumeBtn) resumeBtn.style.display = 'none';
             stopBtn.style.display = 'none';
+            setProductionInputsDisabled(false);
             clockDisplay.textContent = '00:00:00';
             endTimeDisplay.textContent = 'Koniec: --:--:--';
             releaseWakeLock();
@@ -345,6 +384,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        if (!hasCompleteProductionData()) {
+            statusMessage.textContent = 'Wypełnij poprawnie wszystkie pola formularza.';
+            updateProductionFormState();
+            return;
+        }
+
         statusMessage.textContent = '';
         stopAlarm();
         
@@ -352,16 +397,11 @@ document.addEventListener('DOMContentLoaded', () => {
         originalTotalMs = totalMs;
         startTimeDate = Date.now();
         targetTime = startTimeDate + totalMs;
-        isPaused = false;
-        totalPausedMs = 0;
-        pauseStart = 0;
-
         saveState();
         requestWakeLock();
+        setProductionInputsDisabled(true);
 
         startBtn.style.display = 'none';
-        if (pauseBtn) pauseBtn.style.display = 'inline-block';
-        if (resumeBtn) resumeBtn.style.display = 'none';
         stopBtn.style.display = 'inline-block';
 
         const endD = new Date(targetTime);
@@ -387,61 +427,8 @@ document.addEventListener('DOMContentLoaded', () => {
         timerInterval = setInterval(updateDisplay, 1000);
     });
 
-    if (pauseBtn) pauseBtn.addEventListener('click', () => {
-        isPaused = true;
-        pauseStart = Date.now();
-        stopAlarm();
-        
-        if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
-        
-        pauseBtn.style.display = 'none';
-        resumeBtn.style.display = 'inline-block';
-        
-        endTimeDisplay.textContent = 'Trwa pauza...';
-        
-        saveState();
-        releaseWakeLock();
-        updateDisplay();
-    });
-
-    if (resumeBtn) resumeBtn.addEventListener('click', () => {
-        isPaused = false;
-        const pausedFor = Date.now() - pauseStart;
-        totalPausedMs += pausedFor;
-        targetTime += pausedFor; 
-        
-        pauseStart = 0;
-        
-        pauseBtn.style.display = 'inline-block';
-        resumeBtn.style.display = 'none';
-        
-        saveState();
-        requestWakeLock();
-        
-        const endD = new Date(targetTime);
-        const today = new Date();
-        const isSameDay = endD.getDate() === today.getDate() && endD.getMonth() === today.getMonth() && endD.getFullYear() === today.getFullYear();
-        const endH = String(endD.getHours()).padStart(2, '0');
-        const endM = String(endD.getMinutes()).padStart(2, '0');
-        const endS = String(endD.getSeconds()).padStart(2, '0');
-        if (isSameDay) {
-            endTimeDisplay.textContent = `Koniec o: ${endH}:${endM}:${endS}`;
-        } else {
-            const endY = endD.getFullYear();
-            const endMo = String(endD.getMonth()+1).padStart(2, '0');
-            const endDt = String(endD.getDate()).padStart(2, '0');
-            endTimeDisplay.textContent = `Koniec: ${endY}-${endMo}-${endDt} ${endH}:${endM}:${endS}`;
-        }
-        
-        updateDisplay();
-        timerInterval = setInterval(updateDisplay, 1000);
-    });
-
     stopBtn.addEventListener('click', () => {
-        if (timerInterval || isPaused) {
+        if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
             
@@ -455,11 +442,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         startTimeDate = 0;
-        isPaused = false;
         startBtn.style.display = 'inline-block';
-        if (pauseBtn) pauseBtn.style.display = 'none';
-        if (resumeBtn) resumeBtn.style.display = 'none';
         stopBtn.style.display = 'none';
+        setProductionInputsDisabled(false);
         clockDisplay.textContent = '00:00:00';
         endTimeDisplay.textContent = 'Koniec: --:--:--';
         document.body.className = '';
@@ -519,10 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let actualMins = declaredMins;
         if (!isManualSave && startTimeDate > 0) {
-            let activeMs = Date.now() - startTimeDate - totalPausedMs;
-            if (isPaused && pauseStart > 0) {
-                activeMs -= (Date.now() - pauseStart);
-            }
+            let activeMs = Date.now() - startTimeDate;
             actualMins = parseFloat((activeMs / 60000).toFixed(1));
         }
 
@@ -564,7 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lengthInput.value = "";
         piecesInput.value = "";
         timeInput.value = "";
-        if (calcResults) calcResults.style.display = 'none';
+        updateProductionFormState();
         
         window.renderHistory();
     }
@@ -838,14 +820,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         targetTime = parseInt(localStorage.getItem('activeTimer_targetTime'), 10) || 0;
         startTimeDate = parseInt(localStorage.getItem('activeTimer_startTimeDate'), 10) || 0;
-        isPaused = localStorage.getItem('activeTimer_isPaused') === 'true';
-        totalPausedMs = parseInt(localStorage.getItem('activeTimer_totalPausedMs'), 10) || 0;
-        pauseStart = parseInt(localStorage.getItem('activeTimer_pauseStart'), 10) || 0;
         originalTotalMs = parseInt(localStorage.getItem('activeTimer_originalTotalMs'), 10) || 0;
         
         calculateValues();
+        updateProductionFormState();
         
         if (targetTime > 0) {
+            setProductionInputsDisabled(true);
             startBtn.style.display = 'none';
             stopBtn.style.display = 'inline-block';
             
@@ -867,14 +848,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             updateDisplay();
-            if (isPaused) {
-                if (!pauseStart) pauseStart = Date.now();
-                if (pauseBtn) pauseBtn.style.display = 'none';
-                if (resumeBtn) resumeBtn.style.display = 'inline-block';
-                endTimeDisplay.textContent = 'Trwa pauza...';
-            } else {
-                if (pauseBtn) pauseBtn.style.display = 'inline-block';
-                if (resumeBtn) resumeBtn.style.display = 'none';
+            if (targetTime > 0) {
                 timerInterval = setInterval(updateDisplay, 1000);
                 requestWakeLock();
             }

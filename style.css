@@ -30,6 +30,10 @@
     padding: 0;
 }
 
+[hidden] {
+    display: none !important;
+}
+
 button,
 input,
 select {
@@ -97,6 +101,19 @@ body.bg-red {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.timer-section {
+    margin-top: 32px;
+}
+
+.section-title {
+    margin-bottom: 18px;
+    font-size: 1.2rem;
+}
+
+.timer-actions {
+    margin-top: 18px;
 }
 
 .progress-ring {
@@ -305,6 +322,46 @@ select:focus-visible,
     font-size: 0.9rem;
     text-align: left;
     display: none;
+}
+
+.production-summary {
+    margin-bottom: 30px;
+    padding: 16px;
+    text-align: left;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+.production-summary .section-title {
+    margin-bottom: 12px;
+}
+
+.summary-list {
+    display: grid;
+    gap: 8px;
+}
+
+.summary-list div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.summary-list div:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.summary-list dt {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.summary-list dd {
+    font-weight: 600;
+    color: var(--primary);
 }
 
 .result-line {

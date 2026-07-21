@@ -1,4 +1,4 @@
-const CACHE_NAME = 'czasomierz-cache-v6';
+const CACHE_NAME = 'czasomierz-cache-v7';
 const urlsToCache = [
   './',
   './index.html',
