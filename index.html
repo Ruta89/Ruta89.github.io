@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Czasomierz PWA</title>
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json?v=9">
     <meta name="theme-color" content="#1a1a2e">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
     <div class="glass-container">
-        <h1>Czasomierz</h1>
+        <h1>Formularz produkcyjny</h1>
         <div class="input-grid">
             <div class="input-row">
                 <div class="input-group compact">
@@ -85,6 +85,7 @@
         </section>
 
         <div id="calcResults" class="results-panel" hidden>
+            <h2 class="section-title">Wyliczone ustawienia</h2>
             <div class="results-top-row">
                 <div class="result-highlight"><span>Ustaw licznik na:</span><strong id="out-counter">-</strong></div>
                 <div class="result-highlight"><span>Ilość szpul:</span><strong id="out-spools">-</strong></div>
@@ -148,7 +149,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=9"></script>
 </body>
 </html>
 

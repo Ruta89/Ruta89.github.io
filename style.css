@@ -321,7 +321,11 @@ select:focus-visible,
     margin-bottom: 20px;
     font-size: 0.9rem;
     text-align: left;
-    display: none;
+}
+
+.results-panel .section-title {
+    margin-bottom: 14px;
+    text-align: center;
 }
 
 .production-summary {

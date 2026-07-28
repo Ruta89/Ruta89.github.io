@@ -1,10 +1,10 @@
-const CACHE_NAME = 'czasomierz-cache-v7';
+const CACHE_NAME = 'czasomierz-cache-v9';
 const urlsToCache = [
   './',
   './index.html',
-  './style.css',
-  './script.js',
-  './manifest.json',
+  './style.css?v=9',
+  './script.js?v=9',
+  './manifest.json?v=9',
   './icons/icon-64x64.png',
   './icons/icon-192x192.png',
   './icons/icon-512x512.png'
@@ -27,27 +27,22 @@ self.addEventListener('message', event => {
 });
 
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-            return response;
+    fetch(event.request)
+      .then(networkResponse => {
+        if (event.request.url.startsWith(self.location.origin)) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
         }
-        return fetch(event.request)
-          .then(networkResponse => {
-            if (event.request.method === 'GET' && event.request.url.startsWith(self.location.origin)) {
-              const responseToCache = networkResponse.clone();
-              caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseToCache));
-            }
-            return networkResponse;
-          })
-          .catch(() => {
-            if (event.request.mode === 'navigate') {
-              return caches.match('./index.html');
-            }
-            return new Response('Offline', { status: 503, statusText: 'Offline' });
-          });
+        return networkResponse;
       })
+      .catch(() => caches.match(event.request).then(response => {
+        if (response) return response;
+        if (event.request.mode === 'navigate') return caches.match('./index.html');
+        return new Response('Offline', { status: 503, statusText: 'Offline' });
+      }))
   );
 });
 
