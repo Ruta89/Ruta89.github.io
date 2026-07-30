@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const clockDisplay = document.getElementById('clockDisplay');
     const endTimeDisplay = document.getElementById('endTimeDisplay');
     const statusMessage = document.getElementById('statusMessage');
+    const currentTime = document.getElementById('currentTime');
+    const currentDate = document.getElementById('currentDate');
+    const breakStatus = document.getElementById('breakStatus');
     
     // Konfiguracja kółka postępu
     const progressCircle = document.querySelector('.progress-ring__circle');
@@ -27,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const outUnitWeight = document.getElementById('out-unit-weight');
     const timerSection = document.getElementById('timerSection');
     const productionSummary = document.getElementById('productionSummary');
+    const productionForm = document.getElementById('productionForm');
     const summaryTonnage = document.getElementById('summary-tonnage');
     const summaryLength = document.getElementById('summary-length');
     const summaryPieces = document.getElementById('summary-pieces');
@@ -42,6 +46,74 @@ document.addEventListener('DOMContentLoaded', () => {
         '6.0': { key: 'brown', label: 'Brązowy' },
         '8.0': { key: 'blue', label: 'Niebieski' }
     };
+
+    const shiftBreaks = [
+        { shift: 'I zmiana', start: '08:30', end: '08:45', from: 6 * 60, to: 14 * 60 },
+        { shift: 'I zmiana', start: '11:30', end: '11:45', from: 6 * 60, to: 14 * 60 },
+        { shift: 'II zmiana', start: '16:30', end: '16:45', from: 14 * 60, to: 22 * 60 },
+        { shift: 'II zmiana', start: '19:30', end: '19:45', from: 14 * 60, to: 22 * 60 }
+    ];
+
+    function timeToMinutes(time) {
+        const [hours, minutes] = time.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+
+    function formatDuration(milliseconds) {
+        const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+        const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+        const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+        const seconds = String(totalSeconds % 60).padStart(2, '0');
+        return `${hours}:${minutes}:${seconds}`;
+    }
+
+    function getTimeOnCurrentDay(now, time) {
+        const [hours, minutes] = time.split(':').map(Number);
+        const result = new Date(now);
+        result.setHours(hours, minutes, 0, 0);
+        return result;
+    }
+
+    function updateShiftInfo() {
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const currentShift = shiftBreaks.find(item => currentMinutes >= item.from && currentMinutes < item.to);
+
+        currentTime.textContent = now.toLocaleTimeString('pl-PL');
+        currentDate.textContent = now.toLocaleDateString('pl-PL', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+
+        if (!currentShift) {
+            breakStatus.textContent = 'Poza godzinami I i II zmiany';
+            return;
+        }
+
+        const shiftBreakList = shiftBreaks.filter(item => item.shift === currentShift.shift);
+        const activeBreak = shiftBreakList.find(item => {
+            const start = timeToMinutes(item.start);
+            const end = timeToMinutes(item.end);
+            return currentMinutes >= start && currentMinutes < end;
+        });
+
+        if (activeBreak) {
+            const breakEnd = getTimeOnCurrentDay(now, activeBreak.end);
+            breakStatus.textContent = `${activeBreak.shift}: trwa przerwa do ${activeBreak.end} (pozostało ${formatDuration(breakEnd - now)})`;
+            return;
+        }
+
+        const nextBreak = shiftBreakList.find(item => currentMinutes < timeToMinutes(item.start));
+        if (!nextBreak) {
+            breakStatus.textContent = `${currentShift.shift}: brak kolejnej przerwy`;
+            return;
+        }
+
+        const breakStart = getTimeOnCurrentDay(now, nextBreak.start);
+        breakStatus.textContent = `${currentShift.shift}: przerwa o ${nextBreak.start} za ${formatDuration(breakStart - now)}`;
+    }
 
     const db = {
         "0.5": { spools: 1, cnt1: 20, cnt2: 40, wgt1: 0.159, wgt2: 0.312 },
@@ -115,11 +187,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!color) {
             delete document.body.dataset.tonnageColor;
             tonnageColorBadge.hidden = true;
+            tonnageColorBadge.removeAttribute('aria-label');
+            tonnageColorBadge.removeAttribute('title');
             return;
         }
 
         document.body.dataset.tonnageColor = color.key;
-        tonnageColorBadge.textContent = color.label;
+        tonnageColorBadge.setAttribute('aria-label', color.label);
+        tonnageColorBadge.title = color.label;
         tonnageColorBadge.hidden = false;
     }
 
@@ -145,6 +220,10 @@ document.addEventListener('DOMContentLoaded', () => {
         [tonnageInput, lengthInput, piecesInput, timeInput].forEach(input => {
             input.disabled = disabled;
         });
+    }
+
+    function setProductionFormHidden(hidden) {
+        productionForm.hidden = hidden;
     }
 
     function calculateValues() {
@@ -196,6 +275,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Oblicz na starcie, jeśli są domyślne wartości
     updateTonnageTheme();
     updateProductionFormState();
+    updateShiftInfo();
+    setInterval(updateShiftInfo, 1000);
 
     let targetTime = 0;
     let timerInterval = null;
@@ -382,6 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
             startBtn.style.display = 'inline-block';
             stopBtn.style.display = 'none';
             setProductionInputsDisabled(false);
+            setProductionFormHidden(false);
             clockDisplay.textContent = '00:00:00';
             endTimeDisplay.textContent = 'Koniec: --:--:--';
             releaseWakeLock();
@@ -432,6 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveState();
         requestWakeLock();
         setProductionInputsDisabled(true);
+        setProductionFormHidden(true);
 
         startBtn.style.display = 'none';
         stopBtn.style.display = 'inline-block';
@@ -477,6 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startBtn.style.display = 'inline-block';
         stopBtn.style.display = 'none';
         setProductionInputsDisabled(false);
+        setProductionFormHidden(false);
         clockDisplay.textContent = '00:00:00';
         endTimeDisplay.textContent = 'Koniec: --:--:--';
         document.body.className = '';
@@ -578,7 +662,9 @@ document.addEventListener('DOMContentLoaded', () => {
         lengthInput.value = "";
         piecesInput.value = "";
         timeInput.value = "";
+        updateTonnageTheme();
         updateProductionFormState();
+        setProductionFormHidden(false);
         
         window.renderHistory();
     }
@@ -690,10 +776,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const tbody = document.createElement('tbody');
             g.items.forEach(item => {
                 const row = document.createElement('tr');
+                const tonnageColor = getTonnageColor(item.ton);
+                if (tonnageColor) {
+                    row.className = 'history-row';
+                    row.dataset.tonnageColor = tonnageColor.key;
+                }
                 row.appendChild(createHistoryCell('Godz:', item.dispTime));
 
                 const tonCell = document.createElement('td');
                 tonCell.dataset.label = 'Tona\u017c:';
+                if (tonnageColor) {
+                    const colorStrip = document.createElement('span');
+                    colorStrip.className = 'history-tonnage-strip';
+                    colorStrip.setAttribute('aria-hidden', 'true');
+                    tonCell.appendChild(colorStrip);
+                }
                 tonCell.appendChild(createTextElement('b', null, `${item.ton} t`));
                 row.appendChild(tonCell);
 
@@ -860,6 +957,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (targetTime > 0) {
             setProductionInputsDisabled(true);
+            setProductionFormHidden(true);
             startBtn.style.display = 'none';
             stopBtn.style.display = 'inline-block';
             

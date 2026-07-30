@@ -4,16 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Czasomierz PWA</title>
-    <link rel="manifest" href="manifest.json?v=10">
+    <link rel="manifest" href="manifest.json?v=12">
     <meta name="theme-color" content="#1a1a2e">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=10">
+    <link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
     <div class="glass-container">
-        <h1>Formularz produkcyjny</h1>
-        <div class="input-grid">
+        <section class="shift-panel" aria-label="Informacje o zmianie">
+            <div class="shift-now">
+                <span>Aktualna godzina</span>
+                <strong id="currentTime">--:--:--</strong>
+            </div>
+            <div class="shift-date" id="currentDate">Ładowanie daty…</div>
+            <div class="break-status" id="breakStatus" aria-live="polite">Sprawdzanie przerwy…</div>
+        </section>
+        <div id="productionForm" class="input-grid">
             <div class="input-row">
                 <div class="input-group compact">
                     <div class="field-label-row">
@@ -74,7 +81,7 @@
         <section id="timerSection" class="timer-section" hidden>
             <h2 class="section-title">Czasomierz</h2>
             <div class="timer-shell">
-                <svg class="progress-ring" width="220" height="220" aria-hidden="true">
+                <svg class="progress-ring" width="220" height="220" viewBox="0 0 220 220" aria-hidden="true">
                     <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.1)" stroke-width="8" fill="transparent" r="100" cx="110" cy="110"/>
                     <circle class="progress-ring__circle" stroke="#4ade80" stroke-width="8" stroke-linecap="round" fill="transparent" r="100" cx="110" cy="110" stroke-dasharray="628.318" stroke-dashoffset="0" style="transition: stroke-dashoffset 1s linear, stroke 0.5s;"/>
                 </svg>
@@ -152,7 +159,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=10"></script>
+    <script src="script.js?v=12"></script>
 </body>
 </html>
 

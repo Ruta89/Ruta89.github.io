@@ -1,10 +1,10 @@
-const CACHE_NAME = 'czasomierz-cache-v10';
+const CACHE_NAME = 'czasomierz-cache-v12';
 const urlsToCache = [
   './',
   './index.html',
-  './style.css?v=10',
-  './script.js?v=10',
-  './manifest.json?v=10',
+  './style.css?v=12',
+  './script.js?v=12',
+  './manifest.json?v=12',
   './icons/icon-64x64.png',
   './icons/icon-192x192.png',
   './icons/icon-512x512.png'
