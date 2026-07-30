@@ -22,7 +22,18 @@
     --outline: transparent;
     --outline-border: rgba(255, 255, 255, 0.5);
     --outline-hover: rgba(255, 255, 255, 0.2);
+    --tonnage-color: #94a3b8;
+    --tonnage-rgb: 148, 163, 184;
 }
+
+body[data-tonnage-color="purple"] { --tonnage-color: #c084fc; --tonnage-rgb: 192, 132, 252; }
+body[data-tonnage-color="green"] { --tonnage-color: #4ade80; --tonnage-rgb: 74, 222, 128; }
+body[data-tonnage-color="yellow"] { --tonnage-color: #facc15; --tonnage-rgb: 250, 204, 21; }
+body[data-tonnage-color="gray"] { --tonnage-color: #cbd5e1; --tonnage-rgb: 203, 213, 225; }
+body[data-tonnage-color="red"] { --tonnage-color: #fb7185; --tonnage-rgb: 251, 113, 133; }
+body[data-tonnage-color="brown"] { --tonnage-color: #d6a271; --tonnage-rgb: 214, 162, 113; }
+body[data-tonnage-color="blue"] { --tonnage-color: #60a5fa; --tonnage-rgb: 96, 165, 250; }
+body[data-tonnage-color="orange"] { --tonnage-color: #fb923c; --tonnage-rgb: 251, 146, 60; }
 
 * {
     box-sizing: border-box;
@@ -154,6 +165,36 @@ h1 {
     color: rgba(255, 255, 255, 0.8);
 }
 
+.field-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.field-label-row label {
+    margin-bottom: 0;
+}
+
+.tonnage-color-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--tonnage-color);
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.tonnage-color-badge::before {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--tonnage-color);
+    box-shadow: 0 0 10px rgba(var(--tonnage-rgb), 0.75);
+    content: '';
+}
+
 .compact-label {
     font-size: 0.8rem;
 }
@@ -183,6 +224,11 @@ input[type="number"]:focus, select:focus {
     background: rgba(255, 255, 255, 0.1);
     border-color: var(--primary);
     box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.15);
+}
+
+#tonnage {
+    border-color: rgba(var(--tonnage-rgb), 0.65);
+    box-shadow: inset 3px 0 0 var(--tonnage-color);
 }
 
 input[type="number"]:focus-visible,
@@ -316,6 +362,8 @@ select:focus-visible,
 
 .results-panel {
     background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(var(--tonnage-rgb), 0.4);
+    box-shadow: inset 4px 0 0 var(--tonnage-color);
     border-radius: 12px;
     padding: 15px;
     margin-bottom: 20px;
@@ -333,7 +381,7 @@ select:focus-visible,
     padding: 16px;
     text-align: left;
     background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(var(--tonnage-rgb), 0.35);
     border-radius: 12px;
 }
 
@@ -366,6 +414,10 @@ select:focus-visible,
 .summary-list dd {
     font-weight: 600;
     color: var(--primary);
+}
+
+#summary-tonnage {
+    color: var(--tonnage-color);
 }
 
 .result-line {

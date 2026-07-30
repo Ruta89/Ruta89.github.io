@@ -31,6 +31,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryLength = document.getElementById('summary-length');
     const summaryPieces = document.getElementById('summary-pieces');
     const summaryTime = document.getElementById('summary-time');
+    const tonnageColorBadge = document.getElementById('tonnageColorBadge');
+
+    const tonnageColorMap = {
+        '1.0': { key: 'purple', label: 'Fioletowy' },
+        '2.0': { key: 'green', label: 'Zielony' },
+        '3.0': { key: 'yellow', label: 'Żółty' },
+        '4.0': { key: 'gray', label: 'Szary' },
+        '5.0': { key: 'red', label: 'Czerwony' },
+        '6.0': { key: 'brown', label: 'Brązowy' },
+        '8.0': { key: 'blue', label: 'Niebieski' }
+    };
 
     const db = {
         "0.5": { spools: 1, cnt1: 20, cnt2: 40, wgt1: 0.159, wgt2: 0.312 },
@@ -93,6 +104,25 @@ document.addEventListener('DOMContentLoaded', () => {
         return hasValidCalculatorData() && Number.isFinite(time) && time > 0;
     }
 
+    function getTonnageColor(tonnage) {
+        if (Number(tonnage) >= 10) return { key: 'orange', label: 'Pomarańczowy' };
+        return tonnageColorMap[tonnage] || null;
+    }
+
+    function updateTonnageTheme() {
+        const color = getTonnageColor(tonnageInput.value);
+
+        if (!color) {
+            delete document.body.dataset.tonnageColor;
+            tonnageColorBadge.hidden = true;
+            return;
+        }
+
+        document.body.dataset.tonnageColor = color.key;
+        tonnageColorBadge.textContent = color.label;
+        tonnageColorBadge.hidden = false;
+    }
+
     function updateProductionSummary() {
         if (!hasCompleteProductionData()) return;
 
@@ -152,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleProductionInput() {
+        updateTonnageTheme();
         calculateValues();
         updateProductionFormState();
         saveState();
@@ -163,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (timeInput) timeInput.addEventListener('input', handleProductionInput);
     
     // Oblicz na starcie, jeśli są domyślne wartości
+    updateTonnageTheme();
     updateProductionFormState();
 
     let targetTime = 0;
@@ -823,6 +855,7 @@ document.addEventListener('DOMContentLoaded', () => {
         originalTotalMs = parseInt(localStorage.getItem('activeTimer_originalTotalMs'), 10) || 0;
         
         calculateValues();
+        updateTonnageTheme();
         updateProductionFormState();
         
         if (targetTime > 0) {
