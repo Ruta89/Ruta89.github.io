@@ -1,6 +1,6 @@
 {
-  "name": "Antygravity Czasomierz",
-  "short_name": "AGczasomierz",
+  "name": "Czasomierz PWA",
+  "short_name": "Czasomierz",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1a1a2e",

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'antygravity-czasomierz-v6';
+const CACHE_NAME = 'czasomierz-cache-v5';
 const urlsToCache = [
   './',
   './index.html',
@@ -11,11 +11,10 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
-  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache', CACHE_NAME);
+        console.log('Opened cache');
         return cache.addAll(urlsToCache);
       })
   );

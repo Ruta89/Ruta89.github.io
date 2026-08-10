@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Antygravity Czasomierz</title>
+    <title>CursorCzasomierz</title>
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/icon-64x64.png" type="image/png">
     <meta name="theme-color" content="#0f172a">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,18 +26,15 @@
                         <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
                 </div>
-
+                <div class="brand-text">
+                    <h1>CursorCzasomierz</h1>
+                    <span class="brand-subtitle">Kalkulator i stoper zawiesia PWA v5</span>
+                </div>
             </div>
 
             <div class="header-actions">
-                <button id="pwaInstallBtn" class="btn btn-outline btn-sm" style="display: none;" title="Zainstaluj jako aplikację PWA">
-                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
-                    </svg>
-                    <span>Zainstaluj PWA</span>
-                </button>
-                <div id="pwaBadge" class="pwa-badge" title="Status PWA">
-                    <span class="pulse-dot"></span> <span id="pwaStatusText">Online</span>
+                <div id="pwaBadge" class="pwa-badge" title="Status połączenia">
+                    <span class="pulse-dot"></span> Online
                 </div>
                 <button id="muteBtn" class="btn-icon-round" title="Wycisz / Włącz dźwięk alarmu">
                     <!-- Ikona głośnika (włączony) -->
@@ -54,7 +52,27 @@
             </div>
         </header>
 
-
+        <!-- PRZEŁĄCZNIK ZAKŁADEK (DLA EKRAŃÓW MOBILNYCH & TABLETÓW) -->
+        <nav class="mobile-tabs-nav" aria-label="Nawigacja po zakładkach">
+            <button id="tab-calc" class="tab-btn active">
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                    <line x1="8" y1="6" x2="16" y2="6"></line>
+                    <line x1="16" y1="14" x2="16" y2="18"></line>
+                    <path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"></path>
+                </svg>
+                <span>Kalkulator & Timer</span>
+            </button>
+            <button id="tab-hist" class="tab-btn">
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+                <span>Dziennik & Statystyki</span>
+            </button>
+        </nav>
 
         <!-- GŁÓWNY UKŁAD STRONY -->
         <main class="app-main-grid">
@@ -119,7 +137,7 @@
                                 <span>Długość robocza L1</span>
                                 <span class="unit-tag">[ m ]</span>
                             </label>
-                            <input type="number" id="length" step="0.25" min="0.25" placeholder="np. 1.0" inputmode="decimal">
+                            <input type="number" id="length" step="0.25" min="0.25" placeholder="np. 1.0">
                         </div>
 
                         <div class="input-group">
@@ -127,7 +145,7 @@
                                 <span>Liczba sztuk</span>
                                 <span class="unit-tag">[ szt ]</span>
                             </label>
-                            <input type="number" id="pieces" min="1" placeholder="np. 10" inputmode="numeric">
+                            <input type="number" id="pieces" min="1" placeholder="np. 10">
                         </div>
 
                         <div class="input-group">
@@ -135,23 +153,19 @@
                                 <span>Czas normatywny</span>
                                 <span class="unit-tag">[ godz ]</span>
                             </label>
-                            <input type="number" id="timeInput" step="0.01" min="0.01" placeholder="np. 0.5" inputmode="decimal">
+                            <input type="number" id="timeInput" step="0.01" min="0.01" placeholder="np. 0.5">
                         </div>
                     </div>
-
-                    <button id="manualSaveBtn" type="button" class="btn btn-secondary btn-md manual-save-btn">
-                        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                            <polyline points="7 3 7 8 15 8"></polyline>
-                        </svg>
-                        <span>Zapisz wpis ręcznie (bez stoper)</span>
-                    </button>
                 </div>
 
                 <!-- KARTA 1B: LICZNIK CZASU I STOPER -->
                 <div class="card card-timer">
-
+                    <div class="card-header center">
+                        <div class="card-title">
+                            <span class="card-icon">⏱️</span>
+                            <h2>Stoper Produkcyjny</h2>
+                        </div>
+                    </div>
 
                     <!-- WYŁĄCZNIK ALARMU -->
                     <div class="alarm-control-box">
@@ -167,9 +181,9 @@
 
                     <!-- ZEGAR PIERŚCIENIOWY -->
                     <div class="timer-display-wrapper">
-                        <svg class="progress-ring" width="160" height="160">
-                            <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.08)" stroke-width="8" fill="transparent" r="72" cx="80" cy="80" />
-                            <circle class="progress-ring__circle" stroke="#10b981" stroke-width="8" stroke-linecap="round" fill="transparent" r="72" cx="80" cy="80" stroke-dasharray="452.389" stroke-dashoffset="0" />
+                        <svg class="progress-ring" width="220" height="220">
+                            <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.08)" stroke-width="10" fill="transparent" r="100" cx="110" cy="110" />
+                            <circle class="progress-ring__circle" stroke="#10b981" stroke-width="10" stroke-linecap="round" fill="transparent" r="100" cx="110" cy="110" stroke-dasharray="628.318" stroke-dashoffset="0" />
                         </svg>
                         <div class="clock-inner">
                             <span class="clock-label">POZOSTAŁY CZAS</span>
@@ -177,8 +191,6 @@
                             <div id="endTimeDisplay" class="end-time-badge">Koniec: --:--:--</div>
                         </div>
                     </div>
-
-
 
                     <div id="statusMessage" class="status-message"></div>
 
@@ -191,7 +203,20 @@
                             <span>Rozpocznij odliczanie</span>
                         </button>
 
+                        <button id="pauseBtn" class="btn btn-warning btn-lg" style="display: none;">
+                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="6" y="4" width="4" height="16"></rect>
+                                <rect x="14" y="4" width="4" height="16"></rect>
+                            </svg>
+                            <span>Wstrzymaj</span>
+                        </button>
 
+                        <button id="resumeBtn" class="btn btn-warning btn-lg" style="display: none;">
+                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                            <span>Wznów odliczanie</span>
+                        </button>
 
                         <button id="stopBtn" class="btn btn-danger btn-lg" style="display: none;">
                             <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -204,7 +229,7 @@
                 </div>
 
                 <!-- KARTA 1C: WYNIKI OBLICZEŃ -->
-                <div id="calcResults" class="card card-results">
+                <div id="calcResults" class="card card-results" style="display: none;">
                     <div class="card-header">
                         <div class="card-title">
                             <span class="card-icon">📊</span>
@@ -293,20 +318,15 @@
                             <h2>Dziennik Produkcji</h2>
                         </div>
 
-                        <div class="history-controls-bar">
-                            <div class="search-wrapper">
-                                <input type="text" id="historySearch" placeholder="Szukaj (np. 10t, 2.5m)..." class="input-search" title="Szukaj w historii">
-                            </div>
-                            <div class="filter-wrapper">
-                                <label for="historyFilter" class="sr-only">Filtruj wpisy</label>
-                                <select id="historyFilter" class="select-compact">
-                                    <option value="all">Wszystkie wpisy</option>
-                                    <option value="today">Dzisiaj</option>
-                                    <option value="yesterday">Wczoraj</option>
-                                    <option value="week">Ten tydzień</option>
-                                    <option value="month">Ten miesiąc</option>
-                                </select>
-                            </div>
+                        <div class="filter-wrapper">
+                            <label for="historyFilter" class="sr-only">Filtruj wpisy</label>
+                            <select id="historyFilter" class="select-compact">
+                                <option value="all">Wszystkie wpisy</option>
+                                <option value="today">Dzisiaj</option>
+                                <option value="yesterday">Wczoraj</option>
+                                <option value="week">Ten tydzień</option>
+                                <option value="month">Ten miesiąc</option>
+                            </select>
                         </div>
                     </div>
 
@@ -323,23 +343,14 @@
                         </button>
 
                         <div class="toolbar-group">
-                            <button id="btnPrintReport" class="btn btn-outline btn-sm" onclick="window.printReport()">
-                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                                    <rect x="6" y="14" width="12" height="8"></rect>
-                                </svg>
-                                <span>Drukuj Raport</span>
-                            </button>
-
-                            <button class="btn btn-outline btn-sm" onclick="exportCSV()">
+                            <button class="btn btn-outline btn-sm" onclick="exportCSV()" title="Eksport CSV (wg aktywnego filtra)">
                                 <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
                                 </svg>
                                 <span>CSV</span>
                             </button>
 
-                            <button class="btn btn-outline btn-sm" onclick="exportJSON()">
+                            <button class="btn btn-outline btn-sm" onclick="exportJSON()" title="Eksport JSON (wg aktywnego filtra)">
                                 <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
                                 </svg>
@@ -358,115 +369,7 @@
                 </div>
 
             </section>
-            
-            <!-- SEKCJA 3: PROSTY TIMER -->
-            <section id="sec-simple-timer" class="app-section">
-                <div class="card card-timer">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <span class="card-icon">⏱️</span>
-                            <h2>Prosty Timer</h2>
-                        </div>
-                        <span class="card-subtitle">Odliczanie samego czasu</span>
-                    </div>
-                    
-                    <div class="inputs-form-grid" style="margin-top: 15px; margin-bottom: 20px;">
-                        <div class="input-group">
-                            <label for="simpleTimeInput">
-                                <span>Podaj czas</span>
-                                <span class="unit-tag">[ godz ]</span>
-                            </label>
-                            <input type="number" id="simpleTimeInput" step="0.01" min="0.01" placeholder="np. 0.5 (30 min)" inputmode="decimal">
-                        </div>
-                    </div>
-
-                    <!-- WYŁĄCZNIK ALARMU DLA PROSTEGO TIMERA -->
-                    <div class="alarm-control-box">
-                        <button id="simpleStopAlarmBtn" class="btn btn-danger pulsing" style="display: none;">
-                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                                <line x1="2" y1="2" x2="22" y2="22"></line>
-                            </svg>
-                            <span>Wyłącz alarm dźwiękowy</span>
-                        </button>
-                    </div>
-
-                    <div class="timer-display-wrapper">
-                        <svg class="progress-ring" width="160" height="160">
-                            <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.08)" stroke-width="8" fill="transparent" r="72" cx="80" cy="80" />
-                            <circle id="simpleProgressRingCircle" class="progress-ring__circle" stroke="#10b981" stroke-width="8" stroke-linecap="round" fill="transparent" r="72" cx="80" cy="80" stroke-dasharray="452.389" stroke-dashoffset="0" />
-                        </svg>
-                        <div class="clock-inner">
-                            <span class="clock-label">POZOSTAŁY CZAS</span>
-                            <div id="simpleClockDisplay">00:00:00</div>
-                            <div id="simpleEfficiencyDisplay" style="font-size: 1rem; color: #10b981; font-weight: 700; margin-bottom: 5px;">Wydajność: ---%</div>
-                            <div id="simpleEndTimeDisplay" class="end-time-badge">Koniec: --:--:--</div>
-                        </div>
-                    </div>
-
-                    <div class="timer-controls">
-                        <button id="simpleStartBtn" class="btn btn-primary btn-lg">
-                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                            </svg>
-                            <span>Rozpocznij</span>
-                        </button>
-
-                        <button id="simplePauseBtn" class="btn btn-warning btn-lg" style="display: none;">
-                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="6" y="4" width="4" height="16"></rect>
-                                <rect x="14" y="4" width="4" height="16"></rect>
-                            </svg>
-                            <span>Pauza</span>
-                        </button>
-
-                        <button id="simpleResumeBtn" class="btn btn-success btn-lg" style="display: none;">
-                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                            </svg>
-                            <span>Wznów</span>
-                        </button>
-
-                        <button id="simpleStopBtn" class="btn btn-danger btn-lg" style="display: none;">
-                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="4" y="4" width="16" height="16"></rect>
-                            </svg>
-                            <span>Zakończ</span>
-                        </button>
-                    </div>
-                </div>
-            </section>
         </main>
-
-        <!-- PRZEŁĄCZNIK ZAKŁADEK (DLA EKRAŃÓW MOBILNYCH & TABLETÓW) -->
-        <nav class="mobile-tabs-nav" aria-label="Nawigacja po zakładkach">
-            <button id="tab-calc" class="tab-btn active">
-                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
-                    <line x1="8" y1="6" x2="16" y2="6"></line>
-                    <line x1="16" y1="14" x2="16" y2="18"></line>
-                    <path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"></path>
-                </svg>
-                <span>Kalkulator & Timer</span>
-            </button>
-            <button id="tab-simple-timer" class="tab-btn">
-                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-                <span>Prosty Timer</span>
-            </button>
-            <button id="tab-hist" class="tab-btn">
-                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                </svg>
-                <span>Dziennik & Statystyki</span>
-            </button>
-        </nav>
     </div>
 
     <!-- MODAL EDYCJI ZLECENIA -->
@@ -543,13 +446,6 @@
             </div>
         </div>
     </div>
-
-    <!-- POJEMNIK NA POWIADOMIENIA TOAST -->
-    <div id="toast-container" class="toast-container"></div>
-
-    <!-- Firebase SDK (Compat) -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 
     <script src="script.js"></script>
 </body>

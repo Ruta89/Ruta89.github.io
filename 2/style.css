@@ -93,7 +93,7 @@ body.bg-red {
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 20px;
 }
 
 /* ==========================================================================
@@ -106,7 +106,7 @@ body.bg-red {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    padding: 8px 16px;
+    padding: 16px 24px;
     box-shadow: var(--shadow-card);
 }
 
@@ -117,8 +117,8 @@ body.bg-red {
 }
 
 .brand-icon {
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     border-radius: var(--radius-md);
     background: linear-gradient(135deg, var(--primary), var(--cyan));
     color: #04121a;
@@ -128,8 +128,8 @@ body.bg-red {
     box-shadow: 0 0 15px var(--primary-glow);
 }
 .brand-icon svg {
-    width: 18px;
-    height: 18px;
+    width: 24px;
+    height: 24px;
 }
 
 .brand-text h1 {
@@ -242,7 +242,7 @@ body.bg-red {
 .app-main-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 20px;
 }
 
 @media (min-width: 1024px) {
@@ -256,7 +256,7 @@ body.bg-red {
     .app-section {
         display: flex !important;
         flex-direction: column;
-        gap: 12px;
+        gap: 20px;
     }
 }
 
@@ -267,7 +267,7 @@ body.bg-red {
     .app-section {
         display: none;
         flex-direction: column;
-        gap: 12px;
+        gap: 20px;
     }
     .app-section.active {
         display: flex;
@@ -281,7 +281,7 @@ body.bg-red {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    padding: 16px;
+    padding: 24px;
     box-shadow: var(--shadow-card);
     transition: border-color 0.3s ease;
 }
@@ -295,9 +295,9 @@ body.bg-red {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 20px;
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 8px;
+    padding-bottom: 14px;
 }
 
 .card-header.center {
@@ -333,7 +333,7 @@ body.bg-red {
 .inputs-form-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    gap: 16px;
 }
 
 @media (max-width: 580px) {
@@ -365,7 +365,7 @@ body.bg-red {
 
 input[type="number"], select {
     width: 100%;
-    padding: 8px 12px;
+    padding: 12px 14px;
     background: var(--bg-input);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -427,7 +427,7 @@ select option {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: 8px 10px;
+    padding: 12px 14px;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -437,8 +437,6 @@ select option {
 .metric-tile:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.12);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .metric-label {
@@ -474,14 +472,13 @@ select option {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 16px;
 }
 
 .timer-display-wrapper {
     position: relative;
-    width: 160px;
-    height: 160px;
-    margin: 10px auto 15px auto;
+    width: 220px;
+    height: 220px;
+    margin: 10px auto 20px auto;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -515,7 +512,7 @@ select option {
 }
 
 #clockDisplay {
-    font-size: 2.1rem;
+    font-size: 2.8rem;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     letter-spacing: 1px;
@@ -557,7 +554,7 @@ select option {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 8px 16px;
+    padding: 12px 20px;
     border: none;
     border-radius: var(--radius-md);
     font-family: inherit;
@@ -570,8 +567,8 @@ select option {
 
 .btn-lg {
     width: 100%;
-    padding: 10px 20px;
-    font-size: 0.95rem;
+    padding: 14px 24px;
+    font-size: 1.05rem;
 }
 
 .btn-sm {
@@ -581,21 +578,13 @@ select option {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary), var(--cyan));
+    background: var(--primary);
     color: #04121a;
     box-shadow: 0 4px 16px var(--primary-glow);
-    background-size: 200% 200%;
-    animation: gradientShift 3s ease infinite;
 }
 .btn-primary:hover {
-    background-position: right center;
+    background: var(--primary-hover);
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px var(--primary-glow);
-}
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
 }
 
 .btn-warning {
@@ -663,7 +652,7 @@ select option {
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: 12px;
 }
 
 @media (max-width: 768px) {
@@ -676,7 +665,7 @@ select option {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: 10px;
+    padding: 14px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -726,9 +715,9 @@ select option {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 8px;
+    padding-bottom: 12px;
 }
 
 .select-compact {
@@ -740,7 +729,7 @@ select option {
 .history-list-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 16px;
     max-height: 420px;
     overflow-y: auto;
     padding-right: 4px;
@@ -760,7 +749,7 @@ select option {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: 10px;
+    padding: 14px;
 }
 
 .daily-header {
@@ -941,184 +930,4 @@ select option {
     width: 18px;
     height: 18px;
     stroke: currentColor;
-}
-
-/* ==========================================================================
-   NOWE KONTROLKI, SYSTEM TOAST, PWA & DRUKOWANIE
-   ========================================================================== */
-
-.manual-save-btn {
-    margin-top: 16px;
-    width: 100%;
-    border: 1px dashed rgba(6, 182, 212, 0.4);
-    background: rgba(6, 182, 212, 0.06);
-    color: var(--cyan);
-}
-.manual-save-btn:hover {
-    background: rgba(6, 182, 212, 0.15);
-    border-color: var(--cyan);
-}
-
-.timer-adjust-controls {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 12px;
-    width: 100%;
-}
-.timer-adjust-controls .btn {
-    padding: 6px 12px;
-    font-size: 0.8rem;
-    font-weight: 700;
-}
-
-.history-controls-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.search-wrapper {
-    position: relative;
-    min-width: 180px;
-}
-
-.input-search {
-    padding: 6px 12px;
-    font-size: 0.82rem;
-    background: var(--bg-input);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    color: var(--text-main);
-    outline: none;
-    transition: var(--transition-fast);
-}
-.input-search:focus {
-    border-color: var(--cyan);
-    box-shadow: 0 0 0 2px var(--cyan-glow);
-}
-
-.pwa-badge.offline {
-    color: var(--danger);
-    background: rgba(239, 68, 68, 0.1);
-    border-color: rgba(239, 68, 68, 0.3);
-}
-.pwa-badge.offline .pulse-dot {
-    background-color: var(--danger);
-    box-shadow: 0 0 8px var(--danger);
-    animation: none;
-}
-
-/* System Powiadomień Toast */
-.toast-container {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    z-index: 3000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    pointer-events: none;
-}
-
-.toast {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-left: 4px solid var(--cyan);
-    color: var(--text-main);
-    padding: 12px 18px;
-    border-radius: var(--radius-md);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-    font-size: 0.88rem;
-    font-weight: 600;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    pointer-events: auto;
-    max-width: 340px;
-}
-
-.toast.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.toast-success {
-    border-left-color: var(--primary);
-}
-
-.toast-warning {
-    border-left-color: var(--amber);
-}
-
-.toast-danger {
-    border-left-color: var(--danger);
-}
-
-/* Style dla wydruku (Raport dla Brygadzisty) */
-@media print {
-    body {
-        background: #ffffff !important;
-        color: #000000 !important;
-        padding: 0 !important;
-    }
-    
-    .app-header,
-    .mobile-tabs-nav,
-    #sec-calculator,
-    .card-stats,
-    .history-toolbar,
-    .history-controls-bar,
-    .btn-sm,
-    .modal-overlay,
-    .toast-container {
-        display: none !important;
-    }
-
-    .app-wrapper, .app-main-grid, #sec-history, .card-history {
-        display: block !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        box-shadow: none !important;
-        border: none !important;
-        background: transparent !important;
-    }
-
-    .card-title h2 {
-        color: #000000 !important;
-        font-size: 1.5rem !important;
-    }
-
-    .daily-group {
-        background: #ffffff !important;
-        border: 1px solid #ccc !important;
-        margin-bottom: 20px !important;
-        page-break-inside: avoid;
-    }
-
-    .daily-header {
-        color: #000000 !important;
-        border-bottom: 1px solid #ddd !important;
-    }
-
-    .hist-table {
-        color: #000000 !important;
-    }
-
-    .hist-table th {
-        color: #333333 !important;
-        border-bottom: 2px solid #000000 !important;
-    }
-
-    .hist-table td {
-        color: #000000 !important;
-        border-bottom: 1px solid #eee !important;
-    }
-
-    .hist-table td span {
-        color: #000000 !important;
-    }
 }

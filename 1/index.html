@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Czasomierz PWA</title>
+    <link rel="manifest" href="manifest.json?v=12">
+    <meta name="theme-color" content="#1a1a2e">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=12">
+</head>
+<body>
+    <div class="glass-container">
+        <section class="shift-panel" aria-label="Informacje o zmianie">
+            <div class="shift-now">
+                <span>Aktualna godzina</span>
+                <strong id="currentTime">--:--:--</strong>
+            </div>
+            <div class="shift-date" id="currentDate">Ładowanie daty…</div>
+            <div class="break-status" id="breakStatus" aria-live="polite">Sprawdzanie przerwy…</div>
+        </section>
+        <div id="productionForm" class="input-grid">
+            <div class="input-row">
+                <div class="input-group compact">
+                    <div class="field-label-row">
+                        <label for="tonnage" class="compact-label">Tonaż [t]:</label>
+                        <span id="tonnageColorBadge" class="tonnage-color-badge" hidden></span>
+                    </div>
+                    <select id="tonnage">
+                        <option value="0.5">0.5 t</option>
+                        <option value="1.0">1.0 t</option>
+                        <option value="1.5">1.5 t</option>
+                        <option value="2.0">2.0 t</option>
+                        <option value="3.0">3.0 t</option>
+                        <option value="4.0">4.0 t</option>
+                        <option value="5.0">5.0 t</option>
+                        <option value="6.0">6.0 t</option>
+                        <option value="8.0">8.0 t</option>
+                        <option value="10.0">10.0 t</option>
+                        <option value="12.0">12.0 t</option>
+                        <option value="15.0">15.0 t</option>
+                        <option value="20.0">20.0 t</option>
+                        <option value="25.0">25.0 t</option>
+                        <option value="30.0">30.0 t</option>
+                        <option value="35.0">35.0 t</option>
+                        <option value="40.0">40.0 t</option>
+                        <option value="45.0">45.0 t</option>
+                        <option value="50.0">50.0 t</option>
+                        <option value="60.0">60.0 t</option>
+                        <option value="70.0">70.0 t</option>
+                        <option value="80.0">80.0 t</option>
+                        <option value="90.0">90.0 t</option>
+                        <option value="100.0">100.0 t</option>
+                        <option value="125.0">125.0 t</option>
+                        <option value="150.0">150.0 t</option>
+                        <option value="180.0">180.0 t</option>
+                        <option value="200.0">200.0 t</option>
+                        <option value="250.0">250.0 t</option>
+                        <option value="300.0">300.0 t</option>
+                    </select>
+                </div>
+                <div class="input-group compact">
+                    <label for="length" class="compact-label">L1 [m]:</label>
+                    <input type="number" id="length" step="0.25" min="0.25" placeholder="np. 1.0">
+                </div>
+            </div>
+            
+            <div class="input-row">
+                <div class="input-group compact">
+                    <label for="pieces" class="compact-label">Sztuki:</label>
+                    <input type="number" id="pieces" min="1" placeholder="np. 10">
+                </div>
+                <div class="input-group compact">
+                    <label for="timeInput" class="compact-label">Czas [h] (np 0.5):</label>
+                    <input type="number" id="timeInput" step="0.01" min="0.01" placeholder="Czas">
+                </div>
+            </div>
+        </div>
+
+        <section id="timerSection" class="timer-section" hidden>
+            <h2 class="section-title">Czasomierz</h2>
+            <div class="timer-shell">
+                <svg class="progress-ring" width="220" height="220" viewBox="0 0 220 220" aria-hidden="true">
+                    <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.1)" stroke-width="8" fill="transparent" r="100" cx="110" cy="110"/>
+                    <circle class="progress-ring__circle" stroke="#4ade80" stroke-width="8" stroke-linecap="round" fill="transparent" r="100" cx="110" cy="110" stroke-dasharray="628.318" stroke-dashoffset="0" style="transition: stroke-dashoffset 1s linear, stroke 0.5s;"/>
+                </svg>
+                <div id="clockDisplay" class="clock-display" aria-live="off">00:00:00</div>
+            </div>
+            <div id="endTimeDisplay" class="end-time" aria-live="polite">Koniec: --:--:--</div>
+            <div class="btn-group timer-actions">
+                <button id="startBtn" type="button" class="btn primary">⏱️ Start</button>
+                <button id="stopBtn" type="button" class="btn primary btn-danger" style="display: none;">🛑 Koniec</button>
+            </div>
+        </section>
+
+        <div id="calcResults" class="results-panel" hidden>
+            <h2 class="section-title">Wyliczone ustawienia</h2>
+            <div class="results-top-row">
+                <div class="result-highlight"><span>Ustaw licznik na:</span><strong id="out-counter">-</strong></div>
+                <div class="result-highlight"><span>Ilość szpul:</span><strong id="out-spools">-</strong></div>
+                <div class="result-highlight"><span>Przędza:</span><strong id="out-dtex">-</strong></div>
+            </div>
+            <div class="result-line"><span>Waga 1 sztuki:</span><strong id="out-unit-weight">-</strong></div>
+            <div class="result-line"><span>Waga zlecenia:</span><strong id="out-weight">-</strong></div>
+            <div class="result-line"><span>Wymiana szpul co:</span><strong id="out-exchange">-</strong></div>
+        </div>
+
+        <div id="productionSummary" class="production-summary" hidden>
+            <h2 class="section-title">Dane z formularza</h2>
+            <dl class="summary-list">
+                <div><dt>Tonaż:</dt><dd id="summary-tonnage">—</dd></div>
+                <div><dt>Długość L1:</dt><dd id="summary-length">—</dd></div>
+                <div><dt>Liczba sztuk:</dt><dd id="summary-pieces">—</dd></div>
+                <div><dt>Planowany czas:</dt><dd id="summary-time">—</dd></div>
+            </dl>
+        </div>
+        
+        <div id="statusMessage" class="status-message" role="status" aria-live="polite"></div>
+
+        <div class="history-box history-panel">
+            <h3 class="panel-title">📓 Dziennik Produkcji</h3>
+            <div id="history-list"></div>
+            <div class="history-actions">
+                <button id="clearHistoryBtn" type="button" class="btn secondary history-action-btn">🗑️ Wyczyść</button>
+                <button id="exportCsvBtn" type="button" class="btn export-btn history-action-btn">📄 Eksport CSV</button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="app-nav">
+        <a href="index.html" class="active" aria-current="page"><span class="icon">⏱️</span>Czasomierz</a>
+    </nav>
+
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Edytuj Zlecenie</h3>
+            <input type="hidden" id="edit-id">
+            <div class="modal-field">
+                <label for="edit-ton">Tonaż [t]:</label>
+                <input type="text" id="edit-ton" disabled class="modal-input-readonly">
+            </div>
+            <div class="modal-field">
+                <label for="edit-l1">Długość L1 [m]:</label>
+                <input type="text" id="edit-l1" disabled class="modal-input-readonly">
+            </div>
+            <div class="modal-field">
+                <label for="edit-pieces">Zrobione sztuki:</label>
+                <input type="number" id="edit-pieces" min="1" inputmode="numeric" class="modal-input-editable">
+            </div>
+            <div class="modal-field modal-field-last">
+                <label for="edit-time">Wykorzystany czas [min]:</label>
+                <input type="number" id="edit-time" step="0.1" min="0.1" inputmode="decimal" class="modal-input-editable">
+            </div>
+            <div class="modal-actions">
+                <button id="saveEditBtn" type="button" class="btn save-edit-btn">Zapisz</button>
+                <button id="closeEditBtn" type="button" class="btn cancel-edit-btn">Anuluj</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=12"></script>
+</body>
+</html>
+

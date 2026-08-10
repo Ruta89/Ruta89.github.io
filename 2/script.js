@@ -8,89 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const endTimeDisplay = document.getElementById('endTimeDisplay');
     const statusMessage = document.getElementById('statusMessage');
     const stopAlarmBtn = document.getElementById('stopAlarmBtn');
-
+    
     // Zakładki (Tabs) mobilne
     const tabCalc = document.getElementById('tab-calc');
-    const tabSimpleTimer = document.getElementById('tab-simple-timer');
     const tabHist = document.getElementById('tab-hist');
     const secCalc = document.getElementById('sec-calculator');
-    const secSimpleTimer = document.getElementById('sec-simple-timer');
     const secHist = document.getElementById('sec-history');
-
-    // Kontrolki ulepszone
-    const timerAdjustControls = document.getElementById('timerAdjustControls');
-    const manualSaveBtn = document.getElementById('manualSaveBtn');
-    const historySearch = document.getElementById('historySearch');
-    const pwaInstallBtn = document.getElementById('pwaInstallBtn');
-
-    // Konfiguracja Firebase (Zastąp swoimi danymi z konsoli Firebase)
-    const firebaseConfig = {
-        apiKey: "AIzaSyDH-OVArujwHcvNUoTqACCILzP649jrdHc",
-        authDomain: "newarek-7889e.firebaseapp.com",
-        databaseURL: "https://newarek-7889e.firebaseio.com",
-        projectId: "newarek-7889e",
-        storageBucket: "newarek-7889e.firebasestorage.app",
-        messagingSenderId: "231167778694",
-        appId: "1:231167778694:web:aadf704dfe025f98c9d607"
-    };
-
-    let dbFirestore = null;
-    let globalHistory = [];
-
-    if (typeof firebase !== 'undefined') {
-        try {
-            firebase.initializeApp(firebaseConfig);
-            dbFirestore = firebase.firestore();
-
-            dbFirestore.enablePersistence().catch(err => {
-                console.warn("Błąd trybu offline Firebase:", err);
-            });
-
-            // Pobieranie historii i nasłuchiwanie zmian na żywo
-            dbFirestore.collection('zawiesia_history')
-                .orderBy('id', 'asc')
-                .onSnapshot((snapshot) => {
-                    let newHistory = [];
-                    snapshot.forEach((doc) => {
-                        let data = doc.data();
-                        newHistory.push(data);
-                    });
-                    globalHistory = newHistory;
-                    localStorage.setItem("zawiesia_history", JSON.stringify(globalHistory));
-                    window.renderHistory();
-                }, (error) => {
-                    console.error("Błąd pobierania historii z Firebase:", error);
-                    let historyStr = localStorage.getItem("zawiesia_history");
-                    try { globalHistory = JSON.parse(historyStr || "[]"); } catch (e) { globalHistory = []; }
-                    window.renderHistory();
-                });
-
-        } catch (error) {
-            console.error("Błąd inicjalizacji Firebase:", error);
-            let historyStr = localStorage.getItem("zawiesia_history");
-            try { globalHistory = JSON.parse(historyStr || "[]"); } catch (e) { globalHistory = []; }
-        }
-    } else {
-        let historyStr = localStorage.getItem("zawiesia_history");
-        try { globalHistory = JSON.parse(historyStr || "[]"); } catch (e) { globalHistory = []; }
-    }
-
-    // Funkcja powiadomień Toast
-    function showToast(message, type = 'info') {
-        const container = document.getElementById('toast-container');
-        if (!container) return;
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.innerHTML = `<span>${message}</span>`;
-        container.appendChild(toast);
-        setTimeout(() => { toast.classList.add('show'); }, 10);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3200);
-    }
-    window.showToast = showToast;
-
+    
     // Konfiguracja kółka postępu
     const progressCircle = document.querySelector('.progress-ring__circle');
     const circumference = progressCircle ? progressCircle.r.baseVal.value * 2 * Math.PI : 628.318;
@@ -98,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
         progressCircle.style.strokeDashoffset = 0;
     }
-
+    
     // Elementy kalkulatora
     const tonnageInput = document.getElementById('tonnage');
     const lengthInput = document.getElementById('length');
@@ -120,28 +44,28 @@ document.addEventListener('DOMContentLoaded', () => {
         "4.0": { spools: 4, cnt1: 20, cnt2: 40, wgt1: 0.638, wgt2: 1.247 },
         "5.0": { spools: 2, cnt1: 26, cnt2: 52, wgt1: 0.804, wgt2: 1.580 },
         "6.0": { spools: 3, cnt1: 22, cnt2: 44, wgt1: 1.040, wgt2: 2.037 },
-        "8.0": { spools: 3, cnt1: 30, cnt2: 60, wgt1: 1.372, wgt2: 2.703 },
-        "10.0": { spools: 4, cnt1: 30, cnt2: 60, wgt1: 1.830, wgt2: 3.604 },
-        "12.0": { spools: 6, cnt1: 28, cnt2: 56, wgt1: 2.578, wgt2: 5.073 },
-        "15.0": { spools: 6, cnt1: 36, cnt2: 72, wgt1: 3.243, wgt2: 6.403 },
-        "20.0": { spools: 12, cnt1: 22, cnt2: 44, wgt1: 4.158, wgt2: 8.150 },
-        "25.0": { spools: 12, cnt1: 24, cnt2: 48, wgt1: 4.491, wgt2: 8.815 },
-        "30.0": { spools: 12, cnt1: 26, cnt2: 52, wgt1: 4.823, wgt2: 9.480 },
-        "35.0": { spools: 12, cnt1: 44, cnt2: 88, wgt1: 7.320, wgt2: 14.640 },
-        "40.0": { spools: 12, cnt1: 50, cnt2: 100, wgt1: 8.320, wgt2: 16.640 },
-        "45.0": { spools: 12, cnt1: 54, cnt2: 108, wgt1: 8.990, wgt2: 17.980 },
-        "50.0": { spools: 12, cnt1: 64, cnt2: 128, wgt1: 10.649, wgt2: 21.298 },
-        "60.0": { spools: 12, cnt1: 76, cnt2: 152, wgt1: 12.650, wgt2: 25.300 },
-        "70.0": { spools: 12, cnt1: 88, cnt2: 176, wgt1: 14.640, wgt2: 29.280 },
-        "80.0": { spools: 12, cnt1: 100, cnt2: 200, wgt1: 16.640, wgt2: 33.280 },
-        "90.0": { spools: 12, cnt1: 114, cnt2: 228, wgt1: 18.970, wgt2: 37.940 },
-        "100.0": { spools: 12, cnt1: 126, cnt2: 252, wgt1: 20.970, wgt2: 41.940 },
-        "125.0": { spools: 12, cnt1: 160, cnt2: 320, wgt1: 26.620, wgt2: 53.240 },
-        "150.0": { spools: 12, cnt1: 192, cnt2: 384, wgt1: 31.950, wgt2: 63.900 },
-        "180.0": { spools: 12, cnt1: 228, cnt2: 456, wgt1: 37.940, wgt2: 75.880 },
-        "200.0": { spools: 12, cnt1: 252, cnt2: 504, wgt1: 41.930, wgt2: 83.860 },
-        "250.0": { spools: 12, cnt1: 320, cnt2: 640, wgt1: 53.250, wgt2: 106.500 },
-        "300.0": { spools: 12, cnt1: 384, cnt2: 768, wgt1: 63.890, wgt2: 127.780 }
+        "8.0": { spools: 3, cnt1: 30, cnt2: 60, wgt1: 1.372, wgt2: 2.703 }, 
+        "10.0":{ spools: 4, cnt1: 30, cnt2: 60, wgt1: 1.830, wgt2: 3.604 },
+        "12.0":{ spools: 6, cnt1: 28, cnt2: 56, wgt1: 2.578, wgt2: 5.073 },
+        "15.0":{ spools: 6, cnt1: 36, cnt2: 72, wgt1: 3.243, wgt2: 6.403 },
+        "20.0":{ spools: 12, cnt1: 22, cnt2: 44, wgt1: 4.158, wgt2: 8.150 },
+        "25.0":{ spools: 12, cnt1: 24, cnt2: 48, wgt1: 4.491, wgt2: 8.815 },
+        "30.0":{ spools: 12, cnt1: 26, cnt2: 52, wgt1: 4.823, wgt2: 9.480 },
+        "35.0":{ spools: 12, cnt1: 44, cnt2: 88, wgt1: 7.320, wgt2: 14.640 },
+        "40.0":{ spools: 12, cnt1: 50, cnt2: 100, wgt1: 8.320, wgt2: 16.640 },
+        "45.0":{ spools: 12, cnt1: 54, cnt2: 108, wgt1: 8.990, wgt2: 17.980 },
+        "50.0":{ spools: 12, cnt1: 64, cnt2: 128, wgt1: 10.649, wgt2: 21.298 },
+        "60.0":{ spools: 12, cnt1: 76, cnt2: 152, wgt1: 12.650, wgt2: 25.300 },
+        "70.0":{ spools: 12, cnt1: 88, cnt2: 176, wgt1: 14.640, wgt2: 29.280 },
+        "80.0":{ spools: 12, cnt1: 100, cnt2: 200, wgt1: 16.640, wgt2: 33.280 },
+        "90.0":{ spools: 12, cnt1: 114, cnt2: 228, wgt1: 18.970, wgt2: 37.940 },
+        "100.0":{ spools: 12, cnt1: 126, cnt2: 252, wgt1: 20.970, wgt2: 41.940 },
+        "125.0":{ spools: 12, cnt1: 160, cnt2: 320, wgt1: 26.620, wgt2: 53.240 },
+        "150.0":{ spools: 12, cnt1: 192, cnt2: 384, wgt1: 31.950, wgt2: 63.900 },
+        "180.0":{ spools: 12, cnt1: 228, cnt2: 456, wgt1: 37.940, wgt2: 75.880 },
+        "200.0":{ spools: 12, cnt1: 252, cnt2: 504, wgt1: 41.930, wgt2: 83.860 },
+        "250.0":{ spools: 12, cnt1: 320, cnt2: 640, wgt1: 53.250, wgt2: 106.500 },
+        "300.0":{ spools: 12, cnt1: 384, cnt2: 768, wgt1: 63.890, wgt2: 127.780 }
     };
 
     function saveState() {
@@ -149,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('activeTimer_length', lengthInput.value);
         localStorage.setItem('activeTimer_pieces', piecesInput.value);
         localStorage.setItem('activeTimer_timeInput', timeInput.value);
-
+        
         if (targetTime > 0) {
             localStorage.setItem('activeTimer_targetTime', targetTime);
             localStorage.setItem('activeTimer_startTimeDate', startTimeDate);
@@ -170,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let pieces = parseInt(piecesInput.value) || 1;
 
         if (!db[t_val]) return;
-
+        
         let t = db[t_val];
 
         let m_cnt = t.cnt2 - t.cnt1;
@@ -200,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (lengthInput) lengthInput.addEventListener('input', () => { calculateValues(); saveState(); });
     if (piecesInput) piecesInput.addEventListener('input', () => { calculateValues(); saveState(); });
     if (timeInput) timeInput.addEventListener('input', () => { saveState(); });
-
+    
     // Oblicz na starcie, jeśli są domyślne wartości
     calculateValues(true);
 
@@ -208,13 +132,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let timerInterval = null;
     let isMuted = localStorage.getItem('activeTimer_isMuted') === 'true';
     let startTimeDate = 0;
-
+    
     let isPaused = false;
     let totalPausedMs = 0;
     let pauseStart = 0;
     let originalTotalMs = 0;
     let wakeLock = null;
-
+    
     let audioCtx = null;
     let alarmTimeout = null;
     let alarmStartTimestamp = 0;
@@ -269,36 +193,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Przełączanie zakładek (Tabs) na urządzeniach mobilnych
     function switchTab(tab) {
-        if (!tabCalc || !tabHist || !secCalc || !secHist || !tabSimpleTimer || !secSimpleTimer) return;
-        
-        // Reset all
-        tabCalc.classList.remove('active');
-        tabSimpleTimer.classList.remove('active');
-        tabHist.classList.remove('active');
-        secCalc.classList.remove('active');
-        secSimpleTimer.classList.remove('active');
-        secHist.classList.remove('active');
-
+        if (!tabCalc || !tabHist || !secCalc || !secHist) return;
         if (tab === 'calc') {
             tabCalc.classList.add('active');
+            tabHist.classList.remove('active');
             secCalc.classList.add('active');
-        } else if (tab === 'simple-timer') {
-            tabSimpleTimer.classList.add('active');
-            secSimpleTimer.classList.add('active');
+            secHist.classList.remove('active');
         } else {
+            tabCalc.classList.remove('active');
             tabHist.classList.add('active');
+            secCalc.classList.remove('active');
             secHist.classList.add('active');
         }
     }
 
-    if (tabCalc && tabHist && tabSimpleTimer) {
+    if (tabCalc && tabHist) {
         tabCalc.addEventListener('click', (e) => {
             e.preventDefault();
             switchTab('calc');
-        });
-        tabSimpleTimer.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchTab('simple-timer');
         });
         tabHist.addEventListener('click', (e) => {
             e.preventDefault();
@@ -306,92 +218,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Status Online/Offline PWA
-    function updateOnlineStatus() {
-        const badge = document.getElementById('pwaBadge');
-        const text = document.getElementById('pwaStatusText');
-        if (badge && text) {
-            if (navigator.onLine) {
-                badge.classList.remove('offline');
-                text.textContent = 'Online';
-            } else {
-                badge.classList.add('offline');
-                text.textContent = 'Offline (Zapis w Pamięci)';
-            }
-        }
-    }
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    updateOnlineStatus();
-
-    // Instalacja PWA
-    let deferredPrompt = null;
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        if (pwaInstallBtn) pwaInstallBtn.style.display = 'inline-flex';
-    });
-    if (pwaInstallBtn) {
-        pwaInstallBtn.addEventListener('click', async () => {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                showToast('Pomyślnie zainstalowano aplikację!', 'success');
-            }
-            deferredPrompt = null;
-            pwaInstallBtn.style.display = 'none';
-        });
-    }
-
-    // Korekta czasu w locie (+1m, +5m, -1m)
-    window.adjustTimerTime = function (mins) {
-        if (targetTime === 0 && !isPaused) return;
-        const msToAdd = mins * 60 * 1000;
-
-        targetTime += msToAdd;
-        originalTotalMs += msToAdd;
-
-        if (targetTime < Date.now()) {
-            targetTime = Date.now();
-        }
-        saveState();
-        updateDisplay();
-        const sign = mins > 0 ? '+' : '';
-        showToast(`Zmieniono czas odliczania: ${sign}${mins} min`, 'info');
-    };
-
-    // Zapis wpisu ręcznie (bez stopera)
-    if (manualSaveBtn) {
-        manualSaveBtn.addEventListener('click', () => {
-            let t_val = tonnageInput.value;
-            let L1Str = lengthInput.value ? lengthInput.value.replace(',', '.') : '';
-            let piecesStr = piecesInput.value;
-            let timeStr = timeInput.value ? timeInput.value.replace(',', '.') : '';
-
-            let L1 = parseFloat(L1Str);
-            let pieces = parseInt(piecesStr, 10);
-            let timeHours = parseFloat(timeStr);
-
-            if (!t_val || isNaN(L1) || L1 <= 0 || isNaN(pieces) || pieces <= 0 || isNaN(timeHours) || timeHours <= 0) {
-                showToast('Uzupełnij parametry zlecenia (L1, sztuki, czas normatywny)!', 'warning');
-                return;
-            }
-
-            window.finishEarlyAndSave(true);
-            showToast('Zlecenie zapisane ręcznie w Dzienniku Produkcji.', 'success');
-        });
-    }
-
-    // Filtrowanie i wyszukiwanie w historii
+    // Filtrowanie historii
     const historyFilter = document.getElementById('historyFilter');
     if (historyFilter) {
         historyFilter.addEventListener('change', () => {
-            window.renderHistory();
-        });
-    }
-    if (historySearch) {
-        historySearch.addEventListener('input', () => {
             window.renderHistory();
         });
     }
@@ -408,36 +238,36 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function (evt) {
+            reader.onload = function(evt) {
                 try {
-                    const imported = JSON.parse(evt.target.result);
-                    if (!Array.isArray(imported)) {
-                        throw new Error("Dane nie są tablicą!");
-                    }
-                    const isValid = imported.every(item => item && item.id && item.pieces && item.time);
-                    if (!isValid) {
-                        throw new Error("Błędny format danych w pliku JSON.");
-                    }
+                     const imported = JSON.parse(evt.target.result);
+                     if (!Array.isArray(imported)) {
+                         throw new Error("Dane nie są tablicą!");
+                     }
+                     const isValid = imported.every(item => item && item.id && item.pieces && item.time);
+                     if (!isValid) {
+                         throw new Error("Błędny format danych w pliku JSON.");
+                     }
 
-                    let currentHistory = getHistory();
-                    let merged = [...currentHistory];
-                    let countNew = 0;
+                     let currentHistory = getHistory();
+                     let merged = [...currentHistory];
+                     let countNew = 0;
 
-                    imported.forEach(impItem => {
-                        if (!merged.some(currItem => currItem.id === impItem.id)) {
-                            merged.push(impItem);
-                            countNew++;
-                        }
-                    });
+                     imported.forEach(impItem => {
+                         if (!merged.some(currItem => currItem.id === impItem.id)) {
+                             merged.push(impItem);
+                             countNew++;
+                         }
+                     });
 
-                    merged.sort((a, b) => a.id - b.id);
-                    localStorage.setItem("zawiesia_history", JSON.stringify(merged));
-                    showToast(`Zaimportowano pomyślnie! Dodano ${countNew} nowych zleceń.`, 'success');
-                    window.renderHistory();
-                } catch (err) {
-                    showToast("Błąd podczas importu: " + err.message, 'warning');
-                }
-                importFile.value = '';
+                     merged.sort((a,b) => a.id - b.id);
+                     localStorage.setItem("zawiesia_history", JSON.stringify(merged));
+                     alert(`Zaimportowano pomyślnie! Dodano ${countNew} nowych zleceń.`);
+                     window.renderHistory();
+                 } catch(err) {
+                     alert("Błąd podczas importu: " + err.message);
+                 }
+                 importFile.value = '';
             };
             reader.readAsText(file);
         });
@@ -447,26 +277,21 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if ('wakeLock' in navigator) {
                 wakeLock = await navigator.wakeLock.request('screen');
-                wakeLock.addEventListener('release', () => {
-                    wakeLock = null;
-                });
             }
         } catch (err) {
             console.warn(`Wake Lock error: ${err.name}, ${err.message}`);
         }
     }
-
+    
     async function releaseWakeLock() {
         if (wakeLock !== null) {
-            try {
-                await wakeLock.release();
-            } catch (e) { }
+            await wakeLock.release();
             wakeLock = null;
         }
     }
 
     document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && !isPaused && timerInterval) {
+        if (wakeLock !== null && document.visibilityState === 'visible' && !isPaused && timerInterval) {
             requestWakeLock();
         }
     });
@@ -483,18 +308,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-
+        
         osc.type = 'square';
-        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
         osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.3);
-
+        
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-
+        
         gain.gain.setValueAtTime(0, audioCtx.currentTime);
         gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05);
         gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4);
-
+        
         osc.start(audioCtx.currentTime);
         osc.stop(audioCtx.currentTime + 0.4);
     }
@@ -521,13 +346,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (remaining <= 30) {
             delay = 800;
         }
-
+        
         playBeep();
         alarmTimeout = setTimeout(scheduleNextBeep, delay);
     }
 
     function startAlarm() {
-        if (alarmTimeout || isMuted) return;
+        if (alarmTimeout || isMuted) return; 
         alarmStartTimestamp = Date.now();
         if (stopAlarmBtn) {
             stopAlarmBtn.style.display = 'flex';
@@ -565,21 +390,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateDisplay() {
         if (targetTime === 0) return;
-
+        
         const now = isPaused ? pauseStart : Date.now();
         const remainingStr = Math.round((targetTime - now) / 1000);
         let remaining = parseInt(remainingStr, 10);
-
+        
         if (remaining < 0) remaining = 0;
 
         clockDisplay.textContent = formatTime(remaining);
         updateBackground(remaining);
-
+        
         if (progressCircle && originalTotalMs > 0) {
             const percent = remaining / (originalTotalMs / 1000);
             const offset = circumference - percent * circumference;
             progressCircle.style.strokeDashoffset = offset;
-
+            
             if (remaining < 60) progressCircle.style.stroke = '#ef4444';
             else if (remaining < 180) progressCircle.style.stroke = '#f59e0b';
             else progressCircle.style.stroke = '#4ade80';
@@ -592,18 +417,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (remaining === 0) {
             clearInterval(timerInterval);
             timerInterval = null;
-            document.body.className = 'bg-red';
+            document.body.className = 'bg-red'; 
             statusMessage.textContent = '⏱ Czas dobiegł końca!';
             showNotification();
-            startAlarm();
+            startAlarm(); 
             // Zapis do historii po poprawnym zakończeniu timera
             window.finishEarlyAndSave(false);
-
+            
             startTimeDate = 0;
             isPaused = false;
             const cardForm = document.querySelector('.card-form');
             if (cardForm) cardForm.style.display = 'block';
-
+            
             startBtn.style.display = 'inline-block';
             if (pauseBtn) pauseBtn.style.display = 'none';
             if (resumeBtn) resumeBtn.style.display = 'none';
@@ -611,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clockDisplay.textContent = '00:00:00';
             endTimeDisplay.textContent = 'Koniec: --:--:--';
             releaseWakeLock();
-
+            
             if (progressCircle) {
                 progressCircle.style.strokeDashoffset = 0;
                 progressCircle.style.stroke = '#4ade80';
@@ -644,7 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         statusMessage.textContent = '';
         stopAlarm();
-
+        
         const totalMs = Math.floor(val * 3600 * 1000);
         originalTotalMs = totalMs;
         startTimeDate = Date.now();
@@ -663,27 +488,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (pauseBtn) pauseBtn.style.display = 'inline-block';
         if (resumeBtn) resumeBtn.style.display = 'none';
         stopBtn.style.display = 'inline-block';
-        if (timerAdjustControls) timerAdjustControls.style.display = 'flex';
 
         const endD = new Date(targetTime);
         const today = new Date();
         const isSameDay = endD.getDate() === today.getDate() && endD.getMonth() === today.getMonth() && endD.getFullYear() === today.getFullYear();
-
+        
         const endH = String(endD.getHours()).padStart(2, '0');
         const endM = String(endD.getMinutes()).padStart(2, '0');
         const endS = String(endD.getSeconds()).padStart(2, '0');
-
+        
         if (isSameDay) {
             endTimeDisplay.textContent = `Koniec o: ${endH}:${endM}:${endS}`;
         } else {
             const endY = endD.getFullYear();
-            const endMo = String(endD.getMonth() + 1).padStart(2, '0');
+            const endMo = String(endD.getMonth()+1).padStart(2, '0');
             const endDt = String(endD.getDate()).padStart(2, '0');
             endTimeDisplay.textContent = `Koniec: ${endY}-${endMo}-${endDt} ${endH}:${endM}:${endS}`;
         }
 
         if (timerInterval) clearInterval(timerInterval);
-
+        
         updateDisplay();
         timerInterval = setInterval(updateDisplay, 1000);
     });
@@ -691,39 +515,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pauseBtn) pauseBtn.addEventListener('click', () => {
         isPaused = true;
         pauseStart = Date.now();
-
+        
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
         }
-
+        
         pauseBtn.style.display = 'none';
         resumeBtn.style.display = 'inline-block';
-        if (timerAdjustControls) timerAdjustControls.style.display = 'flex';
-
+        
         endTimeDisplay.textContent = 'Trwa pauza...';
-
+        
         saveState();
         releaseWakeLock();
         updateDisplay();
-        showToast('Odliczanie wstrzymane.', 'warning');
     });
 
     if (resumeBtn) resumeBtn.addEventListener('click', () => {
         isPaused = false;
         const pausedFor = Date.now() - pauseStart;
         totalPausedMs += pausedFor;
-        targetTime += pausedFor;
-
+        targetTime += pausedFor; 
+        
         pauseStart = 0;
-
+        
         pauseBtn.style.display = 'inline-block';
         resumeBtn.style.display = 'none';
-        if (timerAdjustControls) timerAdjustControls.style.display = 'flex';
-
+        
         saveState();
         requestWakeLock();
-
+        
         const endD = new Date(targetTime);
         const today = new Date();
         const isSameDay = endD.getDate() === today.getDate() && endD.getMonth() === today.getMonth() && endD.getFullYear() === today.getFullYear();
@@ -734,31 +555,29 @@ document.addEventListener('DOMContentLoaded', () => {
             endTimeDisplay.textContent = `Koniec o: ${endH}:${endM}:${endS}`;
         } else {
             const endY = endD.getFullYear();
-            const endMo = String(endD.getMonth() + 1).padStart(2, '0');
+            const endMo = String(endD.getMonth()+1).padStart(2, '0');
             const endDt = String(endD.getDate()).padStart(2, '0');
             endTimeDisplay.textContent = `Koniec: ${endY}-${endMo}-${endDt} ${endH}:${endM}:${endS}`;
         }
-
+        
         updateDisplay();
         timerInterval = setInterval(updateDisplay, 1000);
-        showToast('Wznowiono odliczanie.', 'info');
     });
 
     stopBtn.addEventListener('click', () => {
         if (timerInterval || isPaused) {
             clearInterval(timerInterval);
             timerInterval = null;
-
+            
             stopAlarm();
             statusMessage.textContent = 'Zakończono i Zapisano.';
-            targetTime = 0;
-
+            targetTime = 0; 
+            
             window.finishEarlyAndSave(false);
-            showToast('Zlecenie zakończone i zapisane.', 'success');
         } else {
             stopAlarm();
         }
-
+        
         startTimeDate = 0;
         isPaused = false;
         const cardForm = document.querySelector('.card-form');
@@ -768,7 +587,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (pauseBtn) pauseBtn.style.display = 'none';
         if (resumeBtn) resumeBtn.style.display = 'none';
         stopBtn.style.display = 'none';
-        if (timerAdjustControls) timerAdjustControls.style.display = 'none';
         clockDisplay.textContent = '00:00:00';
         endTimeDisplay.textContent = 'Koniec: --:--:--';
         document.body.className = '';
@@ -803,24 +621,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ZARZĄDZANIE HISTORIĄ ---
     function getHistory() {
-        return globalHistory;
+        let historyStr = localStorage.getItem("zawiesia_history");
+        try {
+            let parsed = JSON.parse(historyStr || "[]");
+            if(parsed.length > 0 && typeof parsed[0] === 'string') return [];
+            return parsed;
+        } catch(e) { return []; }
     }
 
     function saveToHistory(itemObj) {
-        if (dbFirestore) {
-            dbFirestore.collection('zawiesia_history').doc(itemObj.id.toString()).set(itemObj).catch(err => {
-                console.error("Błąd zapisu do Firebase:", err);
-                showToast("Zapisano offline", "info");
-            });
-        } else {
-            globalHistory.push(itemObj);
-            globalHistory.sort((a, b) => a.id - b.id);
-            localStorage.setItem("zawiesia_history", JSON.stringify(globalHistory));
-            window.renderHistory();
-        }
+        let history = getHistory();
+        history.push(itemObj);
+        localStorage.setItem("zawiesia_history", JSON.stringify(history));
     }
 
-    window.finishEarlyAndSave = function (isManualSave = false) {
+    window.finishEarlyAndSave = function(isManualSave = false) {
         let t_val = tonnageInput.value;
         let L1 = parseFloat(lengthInput.value) || 1.0;
         let pieces = parseInt(piecesInput.value) || 1;
@@ -837,7 +652,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let t = db[t_val];
-        if (!t) return;
+        if(!t) return;
         let m_wgt = t.wgt2 - t.wgt1;
         let add_wgt = t.wgt1 - m_wgt;
         let final_unit_wgt = (m_wgt * L1) + add_wgt;
@@ -856,7 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
             actualTime: actualMins,
             weight: total_wgt
         });
-
+        
         // Wyczyść po zapisie
         localStorage.removeItem('activeTimer_running');
         localStorage.removeItem('activeTimer_isPaused');
@@ -875,13 +690,13 @@ document.addEventListener('DOMContentLoaded', () => {
         piecesInput.value = "";
         timeInput.value = "";
         if (calcResults) calcResults.style.display = 'none';
-
+        
         window.renderHistory();
     }
 
     function updateStatistics(history) {
         const todayStr = new Date().toLocaleDateString('pl-PL');
-
+        
         let pcsToday = 0;
         let pcsAll = 0;
         let wgtToday = 0;
@@ -921,75 +736,58 @@ document.addEventListener('DOMContentLoaded', () => {
             if (actualTimeToday > 0) {
                 const eff = (normTimeToday / actualTimeToday) * 100;
                 efficiencyStr = `${eff.toFixed(0)}%`;
-                if (eff >= 100) statEfficiency.style.color = '#10b981';
-                else if (eff >= 85) statEfficiency.style.color = '#06b6d4';
-                else statEfficiency.style.color = '#f59e0b';
-            } else {
-                statEfficiency.style.color = 'var(--primary)';
             }
             statEfficiency.textContent = efficiencyStr;
         }
     }
 
-    function filterHistory(history, filterType, searchText = '') {
+    function filterHistory(history, filterType) {
         const todayStr = new Date().toLocaleDateString('pl-PL');
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayStr = yesterday.toLocaleDateString('pl-PL');
-
+        
         const now = new Date();
-
+        
+        // Poniedziałek bieżącego tygodnia
         const startOfWeek = new Date(now);
         const day = startOfWeek.getDay();
         const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
         startOfWeek.setDate(diff);
-        startOfWeek.setHours(0, 0, 0, 0);
+        startOfWeek.setHours(0,0,0,0);
         const startOfWeekMs = startOfWeek.getTime();
 
+        // Pierwszy dzień bieżącego miesiąca
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
         const startOfMonthMs = startOfMonth.getTime();
 
-        const searchLower = searchText.trim().toLowerCase();
-
         return history.filter(item => {
-            let matchesDate = true;
-            if (filterType === 'today') matchesDate = item.dayStr === todayStr;
-            else if (filterType === 'yesterday') matchesDate = item.dayStr === yesterdayStr;
-            else if (filterType === 'week') matchesDate = item.id >= startOfWeekMs;
-            else if (filterType === 'month') matchesDate = item.id >= startOfMonthMs;
-
-            if (!matchesDate) return false;
-
-            if (searchLower) {
-                const itemTon = (item.ton || '').toString().toLowerCase();
-                const itemL1 = (item.l1 || '').toString().toLowerCase();
-                const itemPcs = (item.pieces || '').toString().toLowerCase();
-                const itemDay = (item.dayStr || '').toLowerCase();
-                return itemTon.includes(searchLower) || itemL1.includes(searchLower) || itemPcs.includes(searchLower) || itemDay.includes(searchLower);
-            }
-
+            if (filterType === 'all') return true;
+            if (filterType === 'today') return item.dayStr === todayStr;
+            if (filterType === 'yesterday') return item.dayStr === yesterdayStr;
+            if (filterType === 'week') return item.id >= startOfWeekMs;
+            if (filterType === 'month') return item.id >= startOfMonthMs;
             return true;
         });
     }
 
-    window.renderHistory = function () {
+    window.renderHistory = function() {
         let history = getHistory();
-
+        
         // Zawsze aktualizuj statystyki na podstawie pełnej historii
         updateStatistics(history);
 
         let listDiv = document.getElementById("history-list");
-        if (!listDiv) return;
-
-        if (history.length === 0) {
+        if(!listDiv) return;
+        
+        if(history.length === 0) {
             listDiv.innerHTML = '<div style="font-size: 0.9rem; color: rgba(255,255,255,0.5); margin-bottom:15px;">Brak zrobionych zleceń.</div>';
             return;
         }
 
-        // Filtrowanie wpisów i wyszukiwanie
+        // Filtrowanie wpisów
         const filterVal = document.getElementById('historyFilter') ? document.getElementById('historyFilter').value : 'all';
-        const searchVal = document.getElementById('historySearch') ? document.getElementById('historySearch').value : '';
-        let filteredHistory = filterHistory(history, filterVal, searchVal);
+        let filteredHistory = filterHistory(history, filterVal);
 
         if (filteredHistory.length === 0) {
             listDiv.innerHTML = '<div style="font-size: 0.9rem; color: rgba(255,255,255,0.5); margin-bottom:15px;">Brak zleceń spełniających filtry.</div>';
@@ -1000,25 +798,25 @@ document.addEventListener('DOMContentLoaded', () => {
         [...filteredHistory].reverse().forEach(item => {
             let day = item.dayStr || new Date(item.id).toLocaleDateString('pl-PL');
             let time = item.timeStr || new Date(item.id).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
-
-            if (!groups[day]) groups[day] = { items: [], totalTime: 0, totalActualTime: 0 };
-
+            
+            if(!groups[day]) groups[day] = { items: [], totalTime: 0, totalActualTime: 0 };
+            
             item.dispDay = day;
             item.dispTime = time;
             item.parsedTime = parseFloat(item.time) || 0;
             item.parsedActualTime = item.actualTime !== undefined ? parseFloat(item.actualTime) : item.parsedTime;
-
+            
             groups[day].items.push(item);
             groups[day].totalTime += item.parsedTime;
             groups[day].totalActualTime += item.parsedActualTime;
         });
 
         let html = "";
-
+        
         for (let day in groups) {
             let g = groups[day];
             let percent = Math.min((g.totalActualTime / 450) * 100, 100).toFixed(0);
-            let overTimeMsg = g.totalActualTime > 450 ? `<span style="color:#ef4444; margin-left:4px; font-weight:700;">(+${(g.totalActualTime - 450).toFixed(1)} min)</span>` : "";
+            let overTimeMsg = g.totalActualTime > 450 ? `<span style="color:#ef4444; margin-left:4px; font-weight:700;">(+${(g.totalActualTime-450).toFixed(1)} min)</span>` : "";
 
             html += `
             <div class="daily-group">
@@ -1046,7 +844,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </thead>
                         <tbody>
             `;
-
+            
             g.items.forEach(item => {
                 html += `<tr>
                     <td data-label="Godzina:">${item.dispTime}</td>
@@ -1070,42 +868,26 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             html += `</tbody></table></div></div>`;
         }
-
+        
         listDiv.innerHTML = html;
     }
 
-    window.deleteItem = function (id) {
-        if (!confirm("Na pewno usunąć to zlecenie z historii?")) return;
-        if (dbFirestore) {
-            dbFirestore.collection('zawiesia_history').doc(id.toString()).delete().then(() => {
-                showToast("Usunięto zlecenie z Firebase.", "info");
-            }).catch(err => console.error(err));
-        } else {
-            globalHistory = globalHistory.filter(i => i.id !== id);
-            localStorage.setItem("zawiesia_history", JSON.stringify(globalHistory));
-            showToast("Usunięto zlecenie z historii.", "info");
-            window.renderHistory();
-        }
+    window.deleteItem = function(id) {
+        if(!confirm("Na pewno usunąć to zlecenie z historii?")) return;
+        let history = getHistory().filter(i => i.id !== id);
+        localStorage.setItem("zawiesia_history", JSON.stringify(history));
+        window.renderHistory();
     }
 
-    window.clearHistory = function () {
-        if (!confirm("Na pewno wyczyścić CAŁĄ historię ze wszystkich dni?")) return;
-        if (dbFirestore) {
-            globalHistory.forEach(item => {
-                dbFirestore.collection('zawiesia_history').doc(item.id.toString()).delete();
-            });
-            showToast("Wyczyszczono całą historię w Firebase.", "warning");
-        } else {
-            localStorage.removeItem("zawiesia_history");
-            globalHistory = [];
-            showToast("Wyczyszczono całą historię.", "warning");
-            window.renderHistory();
-        }
+    window.clearHistory = function() {
+        if(!confirm("Na pewno wyczyścić CAŁĄ historię ze wszystkich dni?")) return;
+        localStorage.removeItem("zawiesia_history");
+        window.renderHistory();
     }
 
-    window.openEdit = function (id) {
+    window.openEdit = function(id) {
         let item = getHistory().find(i => i.id === id);
-        if (!item) return;
+        if(!item) return;
         document.getElementById("edit-id").value = item.id;
         document.getElementById("edit-ton").value = item.ton;
         document.getElementById("edit-l1").value = item.l1;
@@ -1115,15 +897,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById("edit-modal").style.display = "flex";
     }
 
-    window.closeEdit = function () {
+    window.closeEdit = function() {
         document.getElementById("edit-modal").style.display = "none";
     }
 
-    window.saveEdit = function () {
+    window.saveEdit = function() {
         let id = parseInt(document.getElementById("edit-id").value);
         let history = getHistory();
         let index = history.findIndex(i => i.id === id);
-        if (index === -1) return;
+        if(index === -1) return;
 
         let newTon = document.getElementById("edit-ton").value;
         let newL1 = parseFloat(document.getElementById("edit-l1").value);
@@ -1131,22 +913,18 @@ document.addEventListener('DOMContentLoaded', () => {
         let newTime = parseFloat(document.getElementById("edit-time").value);
         let newActualTime = parseFloat(document.getElementById("edit-actual-time").value);
 
-        if (!newTon || isNaN(newL1) || isNaN(newPieces) || isNaN(newTime) || isNaN(newActualTime) || newL1 <= 0 || newPieces <= 0 || newTime <= 0 || newActualTime <= 0) {
-            showToast("Podaj prawidłowe wartości!", "warning");
-            return;
+        if(!newTon || isNaN(newL1) || isNaN(newPieces) || isNaN(newTime) || isNaN(newActualTime) || newL1 <= 0 || newPieces <= 0 || newTime <= 0 || newActualTime <= 0) {
+            return alert("Podaj prawidłowe wartości!");
         }
 
-        let item = Object.assign({}, history[index]);
+        let item = history[index];
         let t = db[newTon];
-        if (!t) {
-            showToast("Niepoprawny tonaż!", "warning");
-            return;
-        }
+        if(!t) return alert("Niepoprawny tonaż!");
 
         let m_wgt = t.wgt2 - t.wgt1;
         let add_wgt = t.wgt1 - m_wgt;
         let final_unit_wgt = (m_wgt * newL1) + add_wgt;
-
+        
         item.ton = newTon;
         item.l1 = newL1;
         item.pieces = newPieces;
@@ -1154,38 +932,19 @@ document.addEventListener('DOMContentLoaded', () => {
         item.actualTime = newActualTime;
         item.weight = parseFloat((final_unit_wgt * newPieces).toFixed(2));
 
-        if (dbFirestore) {
-            dbFirestore.collection('zawiesia_history').doc(id.toString()).set(item).then(() => {
-                showToast("Zapisano zmiany w zleceniu.", "success");
-                window.closeEdit();
-            }).catch(err => console.error(err));
-        } else {
-            history[index] = item;
-            localStorage.setItem("zawiesia_history", JSON.stringify(history));
-            showToast("Zapisano zmiany w zleceniu.", "success");
-            window.closeEdit();
-            window.renderHistory();
-        }
+        history[index] = item;
+        localStorage.setItem("zawiesia_history", JSON.stringify(history));
+        
+        window.closeEdit();
+        window.renderHistory();
     }
 
-    window.printReport = function () {
+    window.exportCSV = function() {
         let history = getHistory();
-        if (history.length === 0) {
-            showToast("Brak danych w historii do wydrukowania!", "warning");
-            return;
-        }
-        window.print();
-    }
-
-    window.exportCSV = function () {
-        let history = getHistory();
-        if (history.length === 0) {
-            showToast("Brak danych do wyeksportowania!", "warning");
-            return;
-        }
+        if(history.length === 0) return alert("Brak danych do wyeksportowania!");
 
         let csv = "Data;Godzina;Tonaz [t];Dlugosc L1 [m];Sztuki;Czas wykonania (Norma) [min];Czas Faktyczny [min];Laczna waga [kg]\n";
-
+        
         history.forEach(i => {
             let d = i.dayStr || new Date(i.id).toLocaleDateString('pl-PL');
             let t = i.timeStr || new Date(i.id).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
@@ -1201,15 +960,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        showToast("Wygenerowano plik CSV.", "success");
     }
 
-    window.exportJSON = function () {
+    window.exportJSON = function() {
         let history = getHistory();
-        if (history.length === 0) {
-            showToast("Brak danych do wyeksportowania!", "warning");
-            return;
-        }
+        if(history.length === 0) return alert("Brak danych do wyeksportowania!");
 
         let jsonStr = JSON.stringify(history, null, 2);
         let blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
@@ -1220,45 +975,44 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        showToast("Wygenerowano kopię zapasową JSON.", "success");
     }
-
+    
     // Restore z localStorage w razie ubicia karty
     if (localStorage.getItem('activeTimer_running') === 'true') {
         if (localStorage.getItem('activeTimer_tonnage')) tonnageInput.value = localStorage.getItem('activeTimer_tonnage');
         if (localStorage.getItem('activeTimer_length')) lengthInput.value = localStorage.getItem('activeTimer_length');
         if (localStorage.getItem('activeTimer_pieces')) piecesInput.value = localStorage.getItem('activeTimer_pieces');
         if (localStorage.getItem('activeTimer_timeInput')) timeInput.value = localStorage.getItem('activeTimer_timeInput');
-
+        
         targetTime = parseInt(localStorage.getItem('activeTimer_targetTime'), 10) || 0;
         startTimeDate = parseInt(localStorage.getItem('activeTimer_startTimeDate'), 10) || 0;
-
+        
         calculateValues();
-
+        
         if (targetTime > 0) {
             const cardForm = document.querySelector('.card-form');
             if (cardForm) cardForm.style.display = 'none';
 
             startBtn.style.display = 'none';
             stopBtn.style.display = 'inline-block';
-
+            
             const endD = new Date(targetTime);
             const today = new Date();
             const isSameDay = endD.getDate() === today.getDate() && endD.getMonth() === today.getMonth() && endD.getFullYear() === today.getFullYear();
-
+            
             const endH = String(endD.getHours()).padStart(2, '0');
             const endM = String(endD.getMinutes()).padStart(2, '0');
             const endS = String(endD.getSeconds()).padStart(2, '0');
-
+            
             if (isSameDay) {
                 endTimeDisplay.textContent = `Koniec o: ${endH}:${endM}:${endS}`;
             } else {
                 const endY = endD.getFullYear();
-                const endMo = String(endD.getMonth() + 1).padStart(2, '0');
+                const endMo = String(endD.getMonth()+1).padStart(2, '0');
                 const endDt = String(endD.getDate()).padStart(2, '0');
                 endTimeDisplay.textContent = `Koniec: ${endY}-${endMo}-${endDt} ${endH}:${endM}:${endS}`;
             }
-
+            
             updateDisplay();
             timerInterval = setInterval(updateDisplay, 1000);
         }
@@ -1266,179 +1020,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Uruchom na start
     window.renderHistory();
-    // ==========================================
-    // LOGIKA DLA PROSTEGO TIMERA (Tylko Czas)
-    // ==========================================
-    const simpleTimeInput = document.getElementById('simpleTimeInput');
-    
-    const simpleStartBtn = document.getElementById('simpleStartBtn');
-    const simplePauseBtn = document.getElementById('simplePauseBtn');
-    const simpleResumeBtn = document.getElementById('simpleResumeBtn');
-    const simpleStopBtn = document.getElementById('simpleStopBtn');
-    const simpleStopAlarmBtn = document.getElementById('simpleStopAlarmBtn');
-    
-    const simpleClockDisplay = document.getElementById('simpleClockDisplay');
-    const simpleEndTimeDisplay = document.getElementById('simpleEndTimeDisplay');
-    const simpleEfficiencyDisplay = document.getElementById('simpleEfficiencyDisplay');
-    const simpleProgressRingCircle = document.getElementById('simpleProgressRingCircle');
-    
-    let simpleTimerInterval = null;
-    let simpleTimeRemaining = 0; // w sekundach
-    let simpleTotalTime = 0; // w sekundach
-    
-    function formatSimpleTime(seconds) {
-        if (seconds <= 0) return "00:00:00";
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = seconds % 60;
-        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    }
-
-    function updateSimpleRing() {
-        if (!simpleProgressRingCircle) return;
-        const circumference = 72 * 2 * Math.PI; // 452.389
-        if (simpleTotalTime <= 0) {
-            simpleProgressRingCircle.style.strokeDashoffset = 0;
-            return;
-        }
-        const offset = circumference - (simpleTimeRemaining / simpleTotalTime) * circumference;
-        simpleProgressRingCircle.style.strokeDashoffset = offset;
-    }
-    
-    function updateSimpleEfficiency() {
-        if (!simpleEfficiencyDisplay) return;
-        const elapsed = simpleTotalTime - simpleTimeRemaining;
-        if (elapsed > 0) {
-            const eff = (simpleTotalTime / elapsed) * 100;
-            simpleEfficiencyDisplay.textContent = `Wydajność: ${eff.toFixed(0)}%`;
-            if (eff >= 100) simpleEfficiencyDisplay.style.color = '#10b981';
-            else if (eff >= 85) simpleEfficiencyDisplay.style.color = '#06b6d4';
-            else simpleEfficiencyDisplay.style.color = '#f59e0b';
-        } else {
-            simpleEfficiencyDisplay.textContent = "Wydajność: ---%";
-            simpleEfficiencyDisplay.style.color = '#10b981';
-        }
-    }
-
-    function simpleTimerTick() {
-        if (simpleTimeRemaining > 0) {
-            simpleTimeRemaining--;
-            if (simpleClockDisplay) simpleClockDisplay.textContent = formatSimpleTime(simpleTimeRemaining);
-            updateSimpleRing();
-            updateSimpleEfficiency();
-            
-            // Dźwięk ostrzegawczy przed końcem czasu
-            if (simpleTimeRemaining === 60 || simpleTimeRemaining === 30 || (simpleTimeRemaining <= 10 && simpleTimeRemaining > 0)) {
-                if (typeof playBeep === 'function') {
-                    playBeep();
-                }
-            }
-            
-            if (simpleTimeRemaining === 0) {
-                clearInterval(simpleTimerInterval);
-                simpleTimerInterval = null;
-                startAlarm(); // Używamy globalnej funkcji alarmu
-                if (simpleStopAlarmBtn) simpleStopAlarmBtn.style.display = 'flex';
-                if (simplePauseBtn) simplePauseBtn.style.display = 'none';
-                if (simpleResumeBtn) simpleResumeBtn.style.display = 'none';
-            }
-        }
-    }
-
-    if (simpleStartBtn) {
-        simpleStartBtn.addEventListener('click', () => {
-            if (typeof initAudio === 'function') initAudio();
-            
-            const val = parseFloat(simpleTimeInput.value);
-            
-            if (isNaN(val) || val <= 0) {
-                alert("Podaj poprawny czas w formacie dziesiętnym (np. 0.5)!");
-                return;
-            }
-            
-            const totalSec = Math.round(val * 3600);
-            
-            simpleTotalTime = totalSec;
-            simpleTimeRemaining = totalSec;
-            
-            if (simpleClockDisplay) simpleClockDisplay.textContent = formatSimpleTime(simpleTimeRemaining);
-            updateSimpleRing();
-            updateSimpleEfficiency();
-            
-            const now = new Date();
-            const endDate = new Date(now.getTime() + (totalSec * 1000));
-            if (simpleEndTimeDisplay) {
-                simpleEndTimeDisplay.textContent = `Koniec: ${endDate.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`;
-            }
-            
-            if (simpleStartBtn) simpleStartBtn.style.display = 'none';
-            if (simplePauseBtn) simplePauseBtn.style.display = 'inline-flex';
-            if (simpleStopBtn) simpleStopBtn.style.display = 'inline-flex';
-            if (simpleStopAlarmBtn) simpleStopAlarmBtn.style.display = 'none';
-            stopAlarm();
-            
-            if (simpleTimerInterval) clearInterval(simpleTimerInterval);
-            simpleTimerInterval = setInterval(simpleTimerTick, 1000);
-        });
-    }
-
-    if (simplePauseBtn) {
-        simplePauseBtn.addEventListener('click', () => {
-            if (simpleTimerInterval) {
-                clearInterval(simpleTimerInterval);
-                simpleTimerInterval = null;
-                simplePauseBtn.style.display = 'none';
-                simpleResumeBtn.style.display = 'inline-flex';
-            }
-        });
-    }
-
-    if (simpleResumeBtn) {
-        simpleResumeBtn.addEventListener('click', () => {
-            if (!simpleTimerInterval && simpleTimeRemaining > 0) {
-                simpleTimerInterval = setInterval(simpleTimerTick, 1000);
-                
-                // Aktualizacja czasu końca po wznowieniu
-                const now = new Date();
-                const endDate = new Date(now.getTime() + (simpleTimeRemaining * 1000));
-                if (simpleEndTimeDisplay) {
-                    simpleEndTimeDisplay.textContent = `Koniec: ${endDate.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`;
-                }
-                
-                simpleResumeBtn.style.display = 'none';
-                simplePauseBtn.style.display = 'inline-flex';
-            }
-        });
-    }
-
-    if (simpleStopBtn) {
-        simpleStopBtn.addEventListener('click', () => {
-            if (simpleTimerInterval) {
-                clearInterval(simpleTimerInterval);
-                simpleTimerInterval = null;
-            }
-            stopAlarm();
-            
-            simpleTimeRemaining = 0;
-            simpleTotalTime = 0;
-            
-            if (simpleClockDisplay) simpleClockDisplay.textContent = "00:00:00";
-            if (simpleEndTimeDisplay) simpleEndTimeDisplay.textContent = "Koniec: --:--:--";
-            updateSimpleRing();
-            updateSimpleEfficiency();
-            
-            if (simpleStartBtn) simpleStartBtn.style.display = 'inline-flex';
-            if (simplePauseBtn) simplePauseBtn.style.display = 'none';
-            if (simpleResumeBtn) simpleResumeBtn.style.display = 'none';
-            if (simpleStopBtn) simpleStopBtn.style.display = 'none';
-            if (simpleStopAlarmBtn) simpleStopAlarmBtn.style.display = 'none';
-        });
-    }
-    
-    if (simpleStopAlarmBtn) {
-        simpleStopAlarmBtn.addEventListener('click', () => {
-            stopAlarm();
-            simpleStopAlarmBtn.style.display = 'none';
-        });
-    }
 });
