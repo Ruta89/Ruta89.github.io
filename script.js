@@ -285,6 +285,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (tab === 'simple-timer') {
             tabSimpleTimer.classList.add('active');
             secSimpleTimer.classList.add('active');
+            setTimeout(() => {
+                const simpleTimeInput = document.getElementById('simpleTimeInput');
+                if (simpleTimeInput) simpleTimeInput.focus();
+            }, 100);
         } else {
             tabHist.classList.add('active');
             secHist.classList.add('active');
@@ -1285,6 +1289,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let simpleTimerInterval = null;
     let simpleTimeRemaining = 0; // w sekundach
     let simpleTotalTime = 0; // w sekundach
+    let simpleTargetTime = 0; // ms
+    let simplePauseStart = 0; // ms
+
+    function saveSimpleState() {
+        if (simpleTargetTime > 0) {
+            localStorage.setItem('simpleTimer_targetTime', simpleTargetTime);
+            localStorage.setItem('simpleTimer_totalTime', simpleTotalTime);
+            localStorage.setItem('simpleTimer_running', 'true');
+            localStorage.setItem('simpleTimer_isPaused', simplePauseStart > 0 ? 'true' : 'false');
+            localStorage.setItem('simpleTimer_pauseStart', simplePauseStart);
+        } else {
+            localStorage.removeItem('simpleTimer_targetTime');
+            localStorage.removeItem('simpleTimer_totalTime');
+            localStorage.removeItem('simpleTimer_running');
+            localStorage.removeItem('simpleTimer_isPaused');
+            localStorage.removeItem('simpleTimer_pauseStart');
+        }
+    }
     
     function formatSimpleTime(seconds) {
         if (seconds <= 0) return "00:00:00";
@@ -1321,14 +1343,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function simpleTimerTick() {
-        if (simpleTimeRemaining > 0) {
-            simpleTimeRemaining--;
+        if (simpleTargetTime > 0) {
+            const now = simplePauseStart > 0 ? simplePauseStart : Date.now();
+            let remaining = Math.round((simpleTargetTime - now) / 1000);
+            if (remaining < 0) remaining = 0;
+            
+            simpleTimeRemaining = remaining;
+            
             if (simpleClockDisplay) simpleClockDisplay.textContent = formatSimpleTime(simpleTimeRemaining);
             updateSimpleRing();
             updateSimpleEfficiency();
             
             // Dźwięk ostrzegawczy przed końcem czasu
-            if (simpleTimeRemaining === 60 || simpleTimeRemaining === 30 || (simpleTimeRemaining <= 10 && simpleTimeRemaining > 0)) {
+            if (!simplePauseStart && (simpleTimeRemaining === 60 || simpleTimeRemaining === 30 || (simpleTimeRemaining <= 10 && simpleTimeRemaining > 0))) {
                 if (typeof playBeep === 'function') {
                     playBeep();
                 }
@@ -1337,19 +1364,41 @@ document.addEventListener('DOMContentLoaded', () => {
             if (simpleTimeRemaining === 0) {
                 clearInterval(simpleTimerInterval);
                 simpleTimerInterval = null;
+                simpleTargetTime = 0;
+                saveSimpleState();
+
                 startAlarm(); // Używamy globalnej funkcji alarmu
                 if (simpleStopAlarmBtn) simpleStopAlarmBtn.style.display = 'flex';
                 if (simplePauseBtn) simplePauseBtn.style.display = 'none';
                 if (simpleResumeBtn) simpleResumeBtn.style.display = 'none';
+
+                if (window.Notification && Notification.permission === 'granted') {
+                    new Notification('Prosty Timer', {
+                        body: 'Odliczanie zakończone.',
+                        icon: 'icons/icon-192x192.png'
+                    });
+                }
             }
         }
+    }
+
+    if (simpleTimeInput) {
+        simpleTimeInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                if (simpleStartBtn && simpleStartBtn.style.display !== 'none') {
+                    simpleStartBtn.click();
+                    simpleTimeInput.blur();
+                }
+            }
+        });
     }
 
     if (simpleStartBtn) {
         simpleStartBtn.addEventListener('click', () => {
             if (typeof initAudio === 'function') initAudio();
             
-            const val = parseFloat(simpleTimeInput.value);
+            let valStr = simpleTimeInput.value.replace(',', '.');
+            const val = parseFloat(valStr);
             
             if (isNaN(val) || val <= 0) {
                 alert("Podaj poprawny czas w formacie dziesiętnym (np. 0.5)!");
@@ -1359,14 +1408,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const totalSec = Math.round(val * 3600);
             
             simpleTotalTime = totalSec;
+            simpleTargetTime = Date.now() + (totalSec * 1000);
+            simplePauseStart = 0;
             simpleTimeRemaining = totalSec;
+            
+            saveSimpleState();
             
             if (simpleClockDisplay) simpleClockDisplay.textContent = formatSimpleTime(simpleTimeRemaining);
             updateSimpleRing();
             updateSimpleEfficiency();
             
-            const now = new Date();
-            const endDate = new Date(now.getTime() + (totalSec * 1000));
+            const endDate = new Date(simpleTargetTime);
             if (simpleEndTimeDisplay) {
                 simpleEndTimeDisplay.textContent = `Koniec: ${endDate.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`;
             }
@@ -1387,6 +1439,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (simpleTimerInterval) {
                 clearInterval(simpleTimerInterval);
                 simpleTimerInterval = null;
+                simplePauseStart = Date.now();
+                saveSimpleState();
                 simplePauseBtn.style.display = 'none';
                 simpleResumeBtn.style.display = 'inline-flex';
             }
@@ -1395,12 +1449,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (simpleResumeBtn) {
         simpleResumeBtn.addEventListener('click', () => {
-            if (!simpleTimerInterval && simpleTimeRemaining > 0) {
+            if (!simpleTimerInterval && simpleTargetTime > 0) {
+                const pausedFor = Date.now() - simplePauseStart;
+                simpleTargetTime += pausedFor;
+                simplePauseStart = 0;
+                saveSimpleState();
+
                 simpleTimerInterval = setInterval(simpleTimerTick, 1000);
                 
                 // Aktualizacja czasu końca po wznowieniu
-                const now = new Date();
-                const endDate = new Date(now.getTime() + (simpleTimeRemaining * 1000));
+                const endDate = new Date(simpleTargetTime);
                 if (simpleEndTimeDisplay) {
                     simpleEndTimeDisplay.textContent = `Koniec: ${endDate.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`;
                 }
@@ -1421,6 +1479,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             simpleTimeRemaining = 0;
             simpleTotalTime = 0;
+            simpleTargetTime = 0;
+            simplePauseStart = 0;
+            saveSimpleState();
             
             if (simpleClockDisplay) simpleClockDisplay.textContent = "00:00:00";
             if (simpleEndTimeDisplay) simpleEndTimeDisplay.textContent = "Koniec: --:--:--";
@@ -1440,5 +1501,43 @@ document.addEventListener('DOMContentLoaded', () => {
             stopAlarm();
             simpleStopAlarmBtn.style.display = 'none';
         });
+    }
+
+    if (localStorage.getItem('simpleTimer_running') === 'true') {
+        simpleTotalTime = parseInt(localStorage.getItem('simpleTimer_totalTime'), 10) || 0;
+        simpleTargetTime = parseInt(localStorage.getItem('simpleTimer_targetTime'), 10) || 0;
+        
+        const isPaused = localStorage.getItem('simpleTimer_isPaused') === 'true';
+        if (isPaused) {
+            simplePauseStart = parseInt(localStorage.getItem('simpleTimer_pauseStart'), 10) || Date.now();
+        } else {
+            simplePauseStart = 0;
+        }
+
+        const now = simplePauseStart > 0 ? simplePauseStart : Date.now();
+        let remaining = Math.round((simpleTargetTime - now) / 1000);
+        if (remaining < 0) remaining = 0;
+        simpleTimeRemaining = remaining;
+
+        if (simpleTimeRemaining > 0 || (simpleTimeRemaining === 0 && simpleTargetTime > 0)) {
+            if (simpleStartBtn) simpleStartBtn.style.display = 'none';
+            if (simpleStopBtn) simpleStopBtn.style.display = 'inline-flex';
+            
+            if (isPaused) {
+                if (simplePauseBtn) simplePauseBtn.style.display = 'none';
+                if (simpleResumeBtn) simpleResumeBtn.style.display = 'inline-flex';
+            } else {
+                if (simplePauseBtn) simplePauseBtn.style.display = 'inline-flex';
+                if (simpleResumeBtn) simpleResumeBtn.style.display = 'none';
+                simpleTimerInterval = setInterval(simpleTimerTick, 1000);
+            }
+
+            const endDate = new Date(simpleTargetTime);
+            if (simpleEndTimeDisplay) {
+                simpleEndTimeDisplay.textContent = `Koniec: ${endDate.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`;
+            }
+
+            simpleTimerTick();
+        }
     }
 });
