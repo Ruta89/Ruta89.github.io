@@ -894,6 +894,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let actualTimeToday = 0;
 
         history.forEach(item => {
+            if (item.type === 'simple') return;
+
             const isToday = item.dayStr === todayStr;
             const pcs = parseInt(item.pieces) || 0;
             const wgt = parseFloat(item.weight) || 0;
@@ -1052,25 +1054,44 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
 
             g.items.forEach(item => {
-                html += `<tr>
-                    <td data-label="Godzina:">${item.dispTime}</td>
-                    <td data-label="Tonaż:"><span style="color:#06b6d4; font-weight:700;">${item.ton} t</span></td>
-                    <td data-label="L1 [m]:">${item.l1} m</td>
-                    <td data-label="Sztuki:"><b>${item.pieces} szt</b></td>
-                    <td data-label="Czas Zlecenia:">
-                        <span style="color:#10b981;">Norma: <b>${item.parsedTime.toFixed(1)} min</b></span><br>
-                        <span style="color:#f59e0b;">Fakt: <b>${item.parsedActualTime.toFixed(1)} min</b></span>
-                    </td>
-                    <td data-label="Waga [kg]:"><b>${item.weight} kg</b></td>
-                    <td data-label="Opcje:" style="white-space:nowrap; text-align:right;">
-                        <button class="btn btn-sm btn-outline" style="padding: 4px 8px; margin-right:4px;" onclick="openEdit(${item.id})" title="Edytuj zlecenie">
-                            ✏️ Edytuj
-                        </button>
-                        <button class="btn btn-sm btn-danger" style="padding: 4px 8px;" onclick="deleteItem(${item.id})" title="Usuń zlecenie">
-                            🗑️ Usuń
-                        </button>
-                    </td>
-                </tr>`;
+                if (item.type === 'simple') {
+                    html += `<tr>
+                        <td data-label="Godzina:">${item.dispTime}</td>
+                        <td data-label="Tonaż:"><span style="color:#a855f7; font-weight:700;">Prosty Timer</span></td>
+                        <td data-label="Czas Start/Koniec:">Start: ${item.startTimeStr || '-'}</td>
+                        <td data-label="Wydajność:"><b>${item.percentage}</b></td>
+                        <td data-label="Czas trwania:">
+                            <span style="color:#10b981;">Cel: <b>${item.parsedTime.toFixed(1)} min</b></span><br>
+                            <span style="color:#f59e0b;">Fakt: <b>${item.parsedActualTime.toFixed(1)} min</b></span>
+                        </td>
+                        <td data-label="Koniec:">Koniec: ${item.dispTime}</td>
+                        <td data-label="Opcje:" style="white-space:nowrap; text-align:right;">
+                            <button class="btn btn-sm btn-danger" style="padding: 4px 8px;" onclick="deleteItem(${item.id})" title="Usuń zapis">
+                                🗑️ Usuń
+                            </button>
+                        </td>
+                    </tr>`;
+                } else {
+                    html += `<tr>
+                        <td data-label="Godzina:">${item.dispTime}</td>
+                        <td data-label="Tonaż:"><span style="color:#06b6d4; font-weight:700;">${item.ton} t</span></td>
+                        <td data-label="L1 [m]:">${item.l1} m</td>
+                        <td data-label="Sztuki:"><b>${item.pieces} szt</b></td>
+                        <td data-label="Czas Zlecenia:">
+                            <span style="color:#10b981;">Norma: <b>${item.parsedTime.toFixed(1)} min</b></span><br>
+                            <span style="color:#f59e0b;">Fakt: <b>${item.parsedActualTime.toFixed(1)} min</b></span>
+                        </td>
+                        <td data-label="Waga [kg]:"><b>${item.weight} kg</b></td>
+                        <td data-label="Opcje:" style="white-space:nowrap; text-align:right;">
+                            <button class="btn btn-sm btn-outline" style="padding: 4px 8px; margin-right:4px;" onclick="openEdit(${item.id})" title="Edytuj zlecenie">
+                                ✏️ Edytuj
+                            </button>
+                            <button class="btn btn-sm btn-danger" style="padding: 4px 8px;" onclick="deleteItem(${item.id})" title="Usuń zlecenie">
+                                🗑️ Usuń
+                            </button>
+                        </td>
+                    </tr>`;
+                }
             });
             html += `</tbody></table></div></div>`;
         }
@@ -1309,7 +1330,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function formatSimpleTime(seconds) {
-        if (seconds <= 0) return "00:00:00";
+        if (seconds < 0) {
+            const pos = Math.abs(seconds);
+            const h = Math.floor(pos / 3600);
+            const m = Math.floor((pos % 3600) / 60);
+            const s = pos % 60;
+            return `-${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+        if (seconds === 0) return "00:00:00";
         const h = Math.floor(seconds / 3600);
         const m = Math.floor((seconds % 3600) / 60);
         const s = seconds % 60;
@@ -1323,7 +1351,9 @@ document.addEventListener('DOMContentLoaded', () => {
             simpleProgressRingCircle.style.strokeDashoffset = 0;
             return;
         }
-        const offset = circumference - (simpleTimeRemaining / simpleTotalTime) * circumference;
+        let ratio = simpleTimeRemaining / simpleTotalTime;
+        if (ratio < 0) ratio = 0;
+        const offset = circumference - ratio * circumference;
         simpleProgressRingCircle.style.strokeDashoffset = offset;
     }
     
@@ -1346,8 +1376,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (simpleTargetTime > 0) {
             const now = simplePauseStart > 0 ? simplePauseStart : Date.now();
             let remaining = Math.round((simpleTargetTime - now) / 1000);
-            if (remaining < 0) remaining = 0;
             
+            let previousRemaining = simpleTimeRemaining;
             simpleTimeRemaining = remaining;
             
             if (simpleClockDisplay) simpleClockDisplay.textContent = formatSimpleTime(simpleTimeRemaining);
@@ -1361,20 +1391,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
-            if (simpleTimeRemaining === 0) {
-                clearInterval(simpleTimerInterval);
-                simpleTimerInterval = null;
-                simpleTargetTime = 0;
-                saveSimpleState();
-
+            if (previousRemaining > 0 && simpleTimeRemaining <= 0) {
                 startAlarm(); // Używamy globalnej funkcji alarmu
                 if (simpleStopAlarmBtn) simpleStopAlarmBtn.style.display = 'flex';
-                if (simplePauseBtn) simplePauseBtn.style.display = 'none';
-                if (simpleResumeBtn) simpleResumeBtn.style.display = 'none';
 
                 if (window.Notification && Notification.permission === 'granted') {
                     new Notification('Prosty Timer', {
-                        body: 'Odliczanie zakończone.',
+                        body: 'Odliczanie zakończone. Możesz pozwolić mu liczyć dalej na minusie.',
                         icon: 'icons/icon-192x192.png'
                     });
                 }
@@ -1471,6 +1494,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (simpleStopBtn) {
         simpleStopBtn.addEventListener('click', () => {
+            if (simpleTotalTime > 0) {
+                const elapsed = simpleTotalTime - simpleTimeRemaining;
+                let actualMins = parseFloat((elapsed / 60).toFixed(1));
+                let declaredMins = parseFloat((simpleTotalTime / 60).toFixed(1));
+                
+                let finalPercentage = 0;
+                if (elapsed > 0) {
+                    finalPercentage = (simpleTotalTime / elapsed) * 100;
+                }
+
+                let d = new Date();
+                let startTimeStr = new Date(Date.now() - elapsed * 1000).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+
+                saveToHistory({
+                    id: Date.now(),
+                    type: "simple",
+                    dayStr: d.toLocaleDateString('pl-PL'),
+                    timeStr: d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
+                    startTimeStr: startTimeStr,
+                    percentage: finalPercentage.toFixed(0) + "%",
+                    ton: "Prosty",
+                    l1: "-",
+                    pieces: "-",
+                    time: declaredMins,
+                    actualTime: actualMins,
+                    weight: "-"
+                });
+                showToast("Zapisano dane Prostego Timera.", "success");
+            }
+
             if (simpleTimerInterval) {
                 clearInterval(simpleTimerInterval);
                 simpleTimerInterval = null;
