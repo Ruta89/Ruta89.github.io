@@ -139,14 +139,6 @@
                         </div>
                     </div>
 
-                    <button id="manualSaveBtn" type="button" class="btn btn-secondary btn-md manual-save-btn">
-                        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                            <polyline points="7 3 7 8 15 8"></polyline>
-                        </svg>
-                        <span>Zapisz wpis ręcznie (bez stoper)</span>
-                    </button>
                 </div>
 
                 <!-- KARTA 1B: LICZNIK CZASU I STOPER -->
@@ -174,6 +166,8 @@
                         <div class="clock-inner">
                             <span class="clock-label">POZOSTAŁY CZAS</span>
                             <div id="clockDisplay">00:00:00</div>
+                            <div id="efficiencyDisplay" style="font-size: 1rem; color: #10b981; font-weight: 700; margin-bottom: 5px;">Wydajność: ---%</div>
+                            <div id="startTimeDisplay" class="end-time-badge" style="display: none;">Start: --:--:--</div>
                             <div id="endTimeDisplay" class="end-time-badge">Koniec: --:--:--</div>
                         </div>
                     </div>
@@ -411,21 +405,6 @@
                                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
                             </svg>
                             <span>Rozpocznij</span>
-                        </button>
-
-                        <button id="simplePauseBtn" class="btn btn-warning btn-lg" style="display: none;">
-                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="6" y="4" width="4" height="16"></rect>
-                                <rect x="14" y="4" width="4" height="16"></rect>
-                            </svg>
-                            <span>Pauza</span>
-                        </button>
-
-                        <button id="simpleResumeBtn" class="btn btn-success btn-lg" style="display: none;">
-                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                            </svg>
-                            <span>Wznów</span>
                         </button>
 
                         <button id="simpleStopBtn" class="btn btn-danger btn-lg" style="display: none;">
