@@ -149,19 +149,35 @@ body.bg-red {
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+    .app-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .brand-text h1 {
+        font-size: 1.15rem;
+    }
 }
 
 .pwa-badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: var(--primary);
     background: rgba(16, 185, 129, 0.1);
     border: 1px solid rgba(16, 185, 129, 0.2);
-    padding: 6px 14px;
+    padding: 5px 12px;
     border-radius: 30px;
 }
 
@@ -201,15 +217,16 @@ body.bg-red {
 }
 
 /* ==========================================================================
-   NAWIGACJA ZAKŁADEK (MOBILE TABS)
+   NAWIGACJA ZAKŁADEK (TABS NAVIGATION - DESKTOP & MOBILE)
    ========================================================================== */
 .mobile-tabs-nav {
-    display: none;
+    display: flex;
     gap: 8px;
     background: var(--bg-card);
     padding: 6px;
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-card);
 }
 
 .tab-btn {
@@ -225,9 +242,14 @@ body.bg-red {
     color: var(--text-muted);
     font-family: inherit;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     cursor: pointer;
     transition: var(--transition-fast);
+}
+
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
 }
 
 .tab-btn.active {
@@ -245,31 +267,33 @@ body.bg-red {
     gap: 12px;
 }
 
-@media (min-width: 1024px) {
-    .app-main-grid {
-        grid-template-columns: 1.1fr 1fr;
-        align-items: start;
-    }
-    .mobile-tabs-nav {
-        display: none !important;
-    }
-    .app-section {
-        display: flex !important;
-        flex-direction: column;
-        gap: 12px;
-    }
+.app-section {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
 }
 
-@media (max-width: 1023px) {
-    .mobile-tabs-nav {
+.app-section.active {
+    display: flex;
+}
+
+@media (min-width: 1024px) {
+    #sec-calculator.active {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: 16px;
+        align-items: start;
+    }
+    #sec-calculator.active .card-results {
+        grid-column: 1 / -1;
+    }
+    #sec-simple-timer.active {
         display: flex;
+        max-width: 650px;
+        margin: 0 auto;
+        width: 100%;
     }
-    .app-section {
-        display: none;
-        flex-direction: column;
-        gap: 12px;
-    }
-    .app-section.active {
+    #sec-history.active {
         display: flex;
     }
 }
@@ -479,8 +503,8 @@ select option {
 
 .timer-display-wrapper {
     position: relative;
-    width: 160px;
-    height: 160px;
+    width: 260px;
+    height: 260px;
     margin: 10px auto 15px auto;
     display: flex;
     align-items: center;

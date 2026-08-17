@@ -10,7 +10,9 @@
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -20,7 +22,8 @@
         <header class="app-header">
             <div class="brand-container">
                 <div class="brand-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
@@ -29,23 +32,30 @@
             </div>
 
             <div class="header-actions">
-                <button id="pwaInstallBtn" class="btn btn-outline btn-sm" style="display: none;" title="Zainstaluj jako aplikację PWA">
-                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <button id="pwaInstallBtn" class="btn btn-outline btn-sm" style="display: none;"
+                    title="Zainstaluj jako aplikację PWA">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
                     </svg>
                     <span>Zainstaluj PWA</span>
                 </button>
+                <div id="firestoreSyncBadge" class="pwa-badge" title="Status bazy Firestore">
+                    <span class="pulse-dot"></span> <span id="firestoreStatusText">Chmura: Aktywna</span>
+                </div>
                 <div id="pwaBadge" class="pwa-badge" title="Status PWA">
                     <span class="pulse-dot"></span> <span id="pwaStatusText">Online</span>
                 </div>
                 <button id="muteBtn" class="btn-icon-round" title="Wycisz / Włącz dźwięk alarmu">
                     <!-- Ikona głośnika (włączony) -->
-                    <svg class="icon-svg icon-sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="icon-svg icon-sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
                         <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
                     </svg>
                     <!-- Ikona wyciszenia -->
-                    <svg class="icon-svg icon-sound-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                    <svg class="icon-svg icon-sound-off" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
                         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
                         <line x1="23" y1="9" x2="17" y2="15"></line>
                         <line x1="17" y1="9" x2="23" y2="15"></line>
@@ -58,10 +68,10 @@
 
         <!-- GŁÓWNY UKŁAD STRONY -->
         <main class="app-main-grid">
-            
+
             <!-- SEKCJA 1: KALKULATOR I TIMER -->
             <section id="sec-calculator" class="app-section active">
-                
+
                 <!-- KARTA 1A: FORMULARZ PARAMETRÓW ZLECENIA -->
                 <div class="card card-form">
                     <div class="card-header">
@@ -119,7 +129,8 @@
                                 <span>Długość robocza L1</span>
                                 <span class="unit-tag">[ m ]</span>
                             </label>
-                            <input type="number" id="length" step="0.25" min="0.25" placeholder="np. 1.0" inputmode="decimal">
+                            <input type="number" id="length" step="0.25" min="0.25" placeholder="np. 1.0"
+                                inputmode="decimal">
                         </div>
 
                         <div class="input-group">
@@ -135,7 +146,8 @@
                                 <span>Czas normatywny</span>
                                 <span class="unit-tag">[ godz ]</span>
                             </label>
-                            <input type="number" id="timeInput" step="0.01" min="0.01" placeholder="np. 0.5" inputmode="decimal">
+                            <input type="number" id="timeInput" step="0.01" min="0.01" placeholder="np. 0.5"
+                                inputmode="decimal">
                         </div>
                     </div>
 
@@ -148,7 +160,8 @@
                     <!-- WYŁĄCZNIK ALARMU -->
                     <div class="alarm-control-box">
                         <button id="stopAlarmBtn" class="btn btn-danger pulsing" style="display: none;">
-                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                                 <line x1="2" y1="2" x2="22" y2="22"></line>
@@ -159,15 +172,21 @@
 
                     <!-- ZEGAR PIERŚCIENIOWY -->
                     <div class="timer-display-wrapper">
-                        <svg class="progress-ring" width="160" height="160">
-                            <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.08)" stroke-width="8" fill="transparent" r="72" cx="80" cy="80" />
-                            <circle class="progress-ring__circle" stroke="#10b981" stroke-width="8" stroke-linecap="round" fill="transparent" r="72" cx="80" cy="80" stroke-dasharray="452.389" stroke-dashoffset="0" />
+                        <svg class="progress-ring" width="260" height="260">
+                            <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.08)" stroke-width="10"
+                                fill="transparent" r="120" cx="130" cy="130" />
+                            <circle class="progress-ring__circle" stroke="#10b981" stroke-width="10"
+                                stroke-linecap="round" fill="transparent" r="120" cx="130" cy="130"
+                                stroke-dasharray="753.982" stroke-dashoffset="0" />
                         </svg>
                         <div class="clock-inner">
                             <span class="clock-label">POZOSTAŁY CZAS</span>
                             <div id="clockDisplay">00:00:00</div>
-                            <div id="efficiencyDisplay" style="font-size: 1rem; color: #10b981; font-weight: 700; margin-bottom: 5px;">Wydajność: ---%</div>
-                            <div id="startTimeDisplay" class="end-time-badge" style="display: none;">Start: --:--:--</div>
+                            <div id="efficiencyDisplay"
+                                style="font-size: 1rem; color: #10b981; font-weight: 700; margin-bottom: 5px;">
+                                Wydajność: ---%</div>
+                            <div id="startTimeDisplay" class="end-time-badge" style="display: none;">Start: --:--:--
+                            </div>
                             <div id="endTimeDisplay" class="end-time-badge">Koniec: --:--:--</div>
                         </div>
                     </div>
@@ -179,16 +198,16 @@
                     <!-- PRZYCISKI AKCJI TIMERA -->
                     <div class="timer-controls">
                         <button id="startBtn" class="btn btn-primary btn-lg">
-                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
                             </svg>
                             <span>Rozpocznij odliczanie</span>
                         </button>
 
-
-
                         <button id="stopBtn" class="btn btn-danger btn-lg" style="display: none;">
-                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="4" y="4" width="16" height="16"></rect>
                             </svg>
                             <span>Zakończ i Zapisz</span>
@@ -289,13 +308,14 @@
 
                         <div class="history-controls-bar">
                             <div class="search-wrapper">
-                                <input type="text" id="historySearch" placeholder="Szukaj (np. 10t, 2.5m)..." class="input-search" title="Szukaj w historii">
+                                <input type="text" id="historySearch" placeholder="Szukaj (np. 10t, 2.5m)..."
+                                    class="input-search" title="Szukaj w historii">
                             </div>
                             <div class="filter-wrapper">
                                 <label for="historyFilter" class="sr-only">Filtruj wpisy</label>
                                 <select id="historyFilter" class="select-compact">
                                     <option value="all">Wszystkie wpisy</option>
-                                    <option value="today">Dzisiaj</option>
+                                    <option value="today" selected>Dzisiaj</option>
                                     <option value="yesterday">Wczoraj</option>
                                     <option value="week">Ten tydzień</option>
                                     <option value="month">Ten miesiąc</option>
@@ -310,38 +330,47 @@
                     <!-- NARZĘDZIA AKCJI I EKSPORTU -->
                     <div class="history-toolbar">
                         <button class="btn btn-secondary btn-sm" onclick="clearHistory()">
-                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"></path>
+                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6">
+                                </path>
                             </svg>
                             <span>Wyczyść historię</span>
                         </button>
 
                         <div class="toolbar-group">
                             <button id="btnPrintReport" class="btn btn-outline btn-sm" onclick="window.printReport()">
-                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                                    <path
+                                        d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2">
+                                    </path>
                                     <rect x="6" y="14" width="12" height="8"></rect>
                                 </svg>
                                 <span>Drukuj Raport</span>
                             </button>
 
                             <button class="btn btn-outline btn-sm" onclick="exportCSV()">
-                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
                                 </svg>
                                 <span>CSV</span>
                             </button>
 
                             <button class="btn btn-outline btn-sm" onclick="exportJSON()">
-                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
                                 </svg>
                                 <span>Eksport JSON</span>
                             </button>
 
                             <button id="btnImportJSON" class="btn btn-outline btn-sm">
-                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path>
                                 </svg>
                                 <span>Import JSON</span>
@@ -352,7 +381,7 @@
                 </div>
 
             </section>
-            
+
             <!-- SEKCJA 3: PROSTY TIMER -->
             <section id="sec-simple-timer" class="app-section">
                 <div class="card card-timer">
@@ -363,21 +392,23 @@
                         </div>
                         <span class="card-subtitle">Odliczanie samego czasu</span>
                     </div>
-                    
+
                     <div class="inputs-form-grid" style="margin-top: 15px; margin-bottom: 20px;">
                         <div class="input-group">
                             <label for="simpleTimeInput">
                                 <span>Podaj czas</span>
                                 <span class="unit-tag">[ godz ]</span>
                             </label>
-                            <input type="number" id="simpleTimeInput" step="0.01" min="0.01" placeholder="np. 0.5 (30 min)" inputmode="decimal">
+                            <input type="number" id="simpleTimeInput" step="0.01" min="0.01"
+                                placeholder="np. 0.5 (30 min)" inputmode="decimal">
                         </div>
                     </div>
 
                     <!-- WYŁĄCZNIK ALARMU DLA PROSTEGO TIMERA -->
                     <div class="alarm-control-box">
                         <button id="simpleStopAlarmBtn" class="btn btn-danger pulsing" style="display: none;">
-                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                                 <line x1="2" y1="2" x2="22" y2="22"></line>
@@ -388,27 +419,34 @@
 
                     <div class="timer-display-wrapper">
                         <svg class="progress-ring" width="160" height="160">
-                            <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.08)" stroke-width="8" fill="transparent" r="72" cx="80" cy="80" />
-                            <circle id="simpleProgressRingCircle" class="progress-ring__circle" stroke="#10b981" stroke-width="8" stroke-linecap="round" fill="transparent" r="72" cx="80" cy="80" stroke-dasharray="452.389" stroke-dashoffset="0" />
+                            <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.08)" stroke-width="8"
+                                fill="transparent" r="72" cx="80" cy="80" />
+                            <circle id="simpleProgressRingCircle" class="progress-ring__circle" stroke="#10b981"
+                                stroke-width="8" stroke-linecap="round" fill="transparent" r="72" cx="80" cy="80"
+                                stroke-dasharray="452.389" stroke-dashoffset="0" />
                         </svg>
                         <div class="clock-inner">
                             <span class="clock-label">POZOSTAŁY CZAS</span>
                             <div id="simpleClockDisplay">00:00:00</div>
-                            <div id="simpleEfficiencyDisplay" style="font-size: 1rem; color: #10b981; font-weight: 700; margin-bottom: 5px;">Wydajność: ---%</div>
+                            <div id="simpleEfficiencyDisplay"
+                                style="font-size: 1rem; color: #10b981; font-weight: 700; margin-bottom: 5px;">
+                                Wydajność: ---%</div>
                             <div id="simpleEndTimeDisplay" class="end-time-badge">Koniec: --:--:--</div>
                         </div>
                     </div>
 
                     <div class="timer-controls">
                         <button id="simpleStartBtn" class="btn btn-primary btn-lg">
-                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
                             </svg>
                             <span>Rozpocznij</span>
                         </button>
 
                         <button id="simpleStopBtn" class="btn btn-danger btn-lg" style="display: none;">
-                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <rect x="4" y="4" width="16" height="16"></rect>
                             </svg>
                             <span>Zakończ</span>
@@ -421,7 +459,8 @@
         <!-- PRZEŁĄCZNIK ZAKŁADEK (DLA EKRAŃÓW MOBILNYCH & TABLETÓW) -->
         <nav class="mobile-tabs-nav" aria-label="Nawigacja po zakładkach">
             <button id="tab-calc" class="tab-btn active">
-                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
                     <line x1="8" y1="6" x2="16" y2="6"></line>
                     <line x1="16" y1="14" x2="16" y2="18"></line>
@@ -430,14 +469,16 @@
                 <span>Kalkulator & Timer</span>
             </button>
             <button id="tab-simple-timer" class="tab-btn">
-                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
                 <span>Prosty Timer</span>
             </button>
             <button id="tab-hist" class="tab-btn">
-                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <polyline points="14 2 14 8 20 8"></polyline>
                     <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -455,7 +496,7 @@
                 <h3>Edycja Zlecenia Produkcyjnego</h3>
                 <button class="btn-close-modal" onclick="closeEdit()" title="Zamknij">✕</button>
             </div>
-            
+
             <div class="modal-body">
                 <input type="hidden" id="edit-id">
 
