@@ -1,4 +1,4 @@
-const CACHE_NAME = 'antygravity-czasomierz-v6';
+const CACHE_NAME = 'antygravity-czasomierz-v7';
 const urlsToCache = [
   './',
   './index.html',
