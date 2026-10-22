@@ -1,0 +1,26 @@
+{
+  "name": "Antygravity Czasomierz v4",
+  "short_name": "AGczasomierz v4",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0d0b1a",
+  "theme_color": "#6366f1",
+  "description": "Kalkulator zawiesi, obszyć gurtu i czasomierz produkcyjny — edycja v4",
+  "icons": [
+    {
+      "src": "icons/icon-64x64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
