@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#0b0f19">
+    <script src="js/theme-init.js"></script>
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="description" content="Kalkulator parametrów produkcji zawiesi, timer normatywny z obsługą zmian i postojów oraz dziennik zleceń PWA.">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="pl_PL">
+    <meta property="og:site_name" content="Antygravity Czasomierz v3">
+    <meta property="og:title" content="Antygravity Czasomierz v3 — Kalkulator i Timer Produkcji">
+    <meta property="og:description" content="Kalkulator parametrów produkcji zawiesi, timer normatywny z obsługą zmian, postojów technologicznych i wykresów 7 dni.">
+    <meta property="og:url" content="https://newarek-7889e.web.app/">
+    <meta property="og:image" content="https://newarek-7889e.web.app/icons/icon-512x512.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Antygravity Czasomierz v3 — Kalkulator i Timer Produkcji">
+    <meta name="twitter:description" content="Kalkulator parametrów produkcji zawiesi, timer normatywny i dziennik zleceń PWA.">
+    <meta name="twitter:image" content="https://newarek-7889e.web.app/icons/icon-512x512.png">
+    <title>Antygravity Czasomierz v3</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="icons/icon-64x64.png" sizes="64x64" type="image/png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-wrapper">
+        <!-- GŁÓWNY NAGŁÓWEK APLIKACJI -->
+        <header class="app-header">
+            <div class="brand-container">
+                <div class="brand-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>Antygravity Czasomierz <span class="version-pill">v3</span></h1>
+                </div>
+            </div>
+
+            <div class="header-context-controls" aria-label="Wybór zmiany i stanowiska">
+                <label for="activeShiftSelect" class="sr-only">Aktywna zmiana robocza</label>
+                <select id="activeShiftSelect" class="select-compact header-select" title="Wybierz aktywną zmianę roboczą">
+                    <option value="auto" selected>Auto (Zm.)</option>
+                    <option value="I">I zm. (06–14)</option>
+                    <option value="II">II zm. (14–22)</option>
+                    <option value="III">III zm. (22–06)</option>
+                </select>
+                <label for="activeStationSelect" class="sr-only">Aktywne stanowisko / maszyna</label>
+                <select id="activeStationSelect" class="select-compact header-select" title="Wybierz stanowisko lub maszynę">
+                    <option value="">Stanowisko: brak</option>
+                </select>
+            </div>
+
+            <div class="header-actions">
+                <button type="button" id="pwaInstallBtn" class="btn btn-outline btn-sm" style="display: none;"
+                    title="Zainstaluj jako aplikację PWA">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
+                    </svg>
+                    <span>Zainstaluj PWA</span>
+                </button>
+                <div id="firestoreSyncBadge" class="pwa-badge sync-local" title="Status synchronizacji bazy Firestore">
+                    <span class="pulse-dot" aria-hidden="true"></span>
+                    <span id="firestoreStatusText">Chmura: Łączenie...</span>
+                </div>
+                <div id="pwaBadge" class="pwa-badge" title="Status połączenia sieciowego">
+                    <span class="pulse-dot" aria-hidden="true"></span>
+                    <span id="pwaStatusText">Online</span>
+                </div>
+                <button type="button" id="settingsBtn" class="btn-icon-round" aria-label="Panel Technologa i Ustawienia"
+                    title="Panel Technologa — tabela tonaży, norma dzienna i stanowiska">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+                <button type="button" id="themeToggleBtn" class="btn-icon-round theme-toggle-btn"
+                    title="Zmień motyw (ciemny / jasny wysoki kontrast)">
+                    <span class="theme-to-light">
+                        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="4"></circle>
+                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+                        </svg>
+                        <span class="sr-only">Przełącz na tryb jasny (wysoki kontrast)</span>
+                    </span>
+                    <span class="theme-to-dark">
+                        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+                        </svg>
+                        <span class="sr-only">Przełącz na tryb ciemny</span>
+                    </span>
+                </button>
+                <button type="button" id="muteBtn" class="btn-icon-round" aria-label="Wycisz dźwięk alarmu"
+                    aria-pressed="false" title="Wycisz / Włącz dźwięk alarmu">
+                    <svg class="icon-svg icon-sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                    <svg class="icon-svg icon-sound-off" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"
+                        aria-hidden="true">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <line x1="23" y1="9" x2="17" y2="15"></line>
+                        <line x1="17" y1="9" x2="23" y2="15"></line>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- GŁÓWNY UKŁAD STRONY -->
+        <main class="app-main-grid">
+
+            <!-- SEKCJA 1: KALKULATOR I TIMER -->
+            <section id="sec-calculator" class="app-section active" role="tabpanel" aria-labelledby="tab-calc">
+
+                <!-- KARTA 1A: FORMULARZ PARAMETRÓW ZLECENIA -->
+                <div class="card card-form">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon-svg cyan" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                </svg>
+                            </div>
+                            <h2>Parametry Zlecenia</h2>
+                        </div>
+                        <span class="card-subtitle">Wprowadź dane techniczne</span>
+                    </div>
+
+                    <form id="main-order-form" novalidate>
+                        <div class="inputs-form-grid">
+                            <div class="input-group">
+                                <label for="tonnage">
+                                    <span>Tonaż nominalny</span>
+                                    <span class="unit-tag">[ t ]</span>
+                                </label>
+                                <div class="select-wrapper">
+                                    <select id="tonnage">
+                                        <option value="1.0" selected>1.0 t</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="length">
+                                    <span>Długość robocza L1</span>
+                                    <span class="unit-tag">[ m ]</span>
+                                </label>
+                                <input type="number" id="length" step="any" min="0.01" placeholder="np. 1.0"
+                                    inputmode="decimal" required data-error="length-error">
+                                <div id="length-error" class="field-error">
+                                    <span class="field-error-icon" role="img" aria-label="Błąd">⚠</span>
+                                    <span>Podaj dodatnią długość roboczą L1 (np. 1.0 m).</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="pieces">
+                                    <span>Liczba sztuk</span>
+                                    <span class="unit-tag">[ szt ]</span>
+                                </label>
+                                <input type="number" id="pieces" step="1" min="1" placeholder="np. 10"
+                                    inputmode="numeric" required data-error="pieces-error">
+                                <div id="pieces-error" class="field-error">
+                                    <span class="field-error-icon" role="img" aria-label="Błąd">⚠</span>
+                                    <span>Podaj całkowitą liczbę sztuk (min. 1).</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <div class="label-row">
+                                    <label for="timeInput">
+                                        <span>Czas normatywny</span>
+                                    </label>
+                                    <button type="button" class="unit-toggle-btn" data-time-unit-toggle
+                                        aria-pressed="false"
+                                        title="Przełącz jednostkę między godzinami dziesiętnymi a minutami">
+                                        <span class="unit-toggle-pill active" data-unit-opt="hours">godz</span>
+                                        <span class="unit-toggle-pill" data-unit-opt="minutes">min</span>
+                                    </button>
+                                </div>
+                                <div class="simple-input-wrapper">
+                                    <input type="number" id="timeInput" step="any" min="0.01" placeholder="np. 0.5"
+                                        inputmode="decimal" required data-error="timeInput-error">
+                                    <div id="mainTimeHelper" class="simple-time-helper" aria-hidden="true">-- min</div>
+                                </div>
+                                <div id="timeInput-error" class="field-error">
+                                    <span class="field-error-icon" role="img" aria-label="Błąd">⚠</span>
+                                    <span id="timeInput-error-text">Podaj dodatni czas normatywny w godzinach (np. 0.5).</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group input-group-full">
+                                <label for="orderNote">
+                                    <span>Notatka / nr zlecenia</span>
+                                    <span class="unit-tag">[ opcjonalnie ]</span>
+                                </label>
+                                <input type="text" id="orderNote" maxlength="120"
+                                    placeholder="np. ZL-2026/114 lub uwaga do partii" autocomplete="off">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- KARTA 1B: LICZNIK CZASU I STOPER -->
+                <div class="card card-timer">
+
+                    <!-- PASEK PODSUMOWANIA AKTYWNEGO ZLECENIA + TRACKER SZPUL -->
+                    <div id="activeOrderSummary" class="active-order-summary" hidden
+                        aria-label="Podsumowanie bieżącego zlecenia">
+                        <div class="summary-chips">
+                            <div class="summary-chip">
+                                <span class="summary-chip-label">Tonaż</span>
+                                <strong id="summary-ton" class="summary-chip-val">-</strong>
+                            </div>
+                            <div class="summary-chip">
+                                <span class="summary-chip-label">L1</span>
+                                <strong id="summary-l1" class="summary-chip-val">-</strong>
+                            </div>
+                            <div class="summary-chip">
+                                <span class="summary-chip-label">Sztuki</span>
+                                <strong id="summary-pieces" class="summary-chip-val">-</strong>
+                            </div>
+                            <div class="summary-chip summary-chip-accent">
+                                <span class="summary-chip-label">Licznik</span>
+                                <strong id="summary-counter" class="summary-chip-val">-</strong>
+                            </div>
+                        </div>
+                        <div id="spoolTrackerRow" class="spool-tracker-row" hidden>
+                            <span id="spoolTrackerText" class="spool-tracker-text">Wymiany szpul: 0</span>
+                            <div class="spool-tracker-actions">
+                                <button type="button" id="btnMarkSpoolExchange" class="btn btn-outline btn-xs">+ Odznacz wymianę</button>
+                                <button type="button" id="btnPauseForSpool" class="btn btn-amber btn-xs">Postój: Szpule</button>
+                            </div>
+                        </div>
+                        <div id="summary-note-wrap" class="summary-note-row" hidden>
+                            <span class="summary-note-label">Notatka:</span>
+                            <span id="summary-note" class="summary-note-text"></span>
+                        </div>
+                    </div>
+
+                    <!-- BANER AKTYWNEGO POSTOJU -->
+                    <div id="mainPauseBanner" class="pause-banner" hidden role="status" aria-live="polite">
+                        <div class="pause-banner-info">
+                            <span class="pause-dot" aria-hidden="true"></span>
+                            <span>POSTÓJ: <strong id="mainPauseReasonText">Postój technologiczny</strong></span>
+                        </div>
+                        <strong id="mainPauseTimerText" class="pause-banner-clock">00:00:00</strong>
+                    </div>
+
+                    <!-- WYŁĄCZNIK ALARMU -->
+                    <div class="alarm-control-box">
+                        <button type="button" id="stopAlarmBtn" class="btn btn-danger pulsing" style="display: none;">
+                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                <line x1="2" y1="2" x2="22" y2="22"></line>
+                            </svg>
+                            <span>Wyłącz alarm dźwiękowy</span>
+                        </button>
+                    </div>
+
+                    <!-- KOREKTA CZASU W TRAKCIE ODLICZANIA -->
+                    <div id="timerAdjustControls" class="timer-adjust-controls" style="display: none;">
+                        <button type="button" class="btn btn-secondary btn-sm" data-adjust-timer="-5"
+                            title="Odejmij 5 minut">-5m</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-adjust-timer="-1"
+                            title="Odejmij 1 minutę">-1m</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-adjust-timer="1"
+                            title="Dodaj 1 minutę">+1m</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-adjust-timer="5"
+                            title="Dodaj 5 minut">+5m</button>
+                    </div>
+
+                    <!-- ZEGAR PIERŚCIENIOWY -->
+                    <div class="timer-display-wrapper">
+                        <svg class="progress-ring" width="260" height="260" aria-hidden="true">
+                            <circle class="progress-ring__circle-bg" stroke-width="10"
+                                fill="transparent" r="120" cx="130" cy="130" />
+                            <circle id="mainProgressRingCircle" class="progress-ring__circle"
+                                stroke-width="10" stroke-linecap="round" fill="transparent" r="120" cx="130" cy="130"
+                                stroke-dasharray="753.982" stroke-dashoffset="0" />
+                        </svg>
+                        <div class="clock-inner">
+                            <span class="clock-label">POZOSTAŁY CZAS</span>
+                            <div id="clockDisplay">00:00:00</div>
+                            <div id="efficiencyDisplay" class="efficiency-badge">
+                                Wydajność: ---%
+                            </div>
+                            <div class="time-badges-row">
+                                <div id="startTimeDisplay" class="end-time-badge" style="display: none;">Start: --:--</div>
+                                <div id="endTimeDisplay" class="end-time-badge">Koniec: --:--:--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="statusMessage" class="status-message" role="status" aria-live="polite"></div>
+
+                    <!-- PRZYCISKI AKCJI TIMERA -->
+                    <div class="timer-controls">
+                        <button type="button" id="startBtn" class="btn btn-primary btn-lg">
+                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                            <span>Rozpocznij odliczanie</span>
+                        </button>
+
+                        <div class="timer-running-actions">
+                            <button type="button" id="pauseBtn" class="btn btn-amber btn-lg" style="display: none;">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="6" y="4" width="4" height="16"></rect>
+                                    <rect x="14" y="4" width="4" height="16"></rect>
+                                </svg>
+                                <span>Pauza / Postój</span>
+                            </button>
+
+                            <button type="button" id="resumeBtn" class="btn btn-primary btn-lg" style="display: none;">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                </svg>
+                                <span>Wznów pracę</span>
+                            </button>
+
+                            <button type="button" id="stopBtn" class="btn btn-danger btn-lg" style="display: none;">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                                </svg>
+                                <span>Zakończ i Zapisz</span>
+                            </button>
+                        </div>
+
+                        <button type="button" id="cancelBtn" class="btn btn-outline btn-sm btn-cancel-run" style="display: none;">
+                            Anuluj odliczanie (bez zapisu)
+                        </button>
+                    </div>
+                    <p class="shortcut-hint">Skróty: <kbd>Ctrl</kbd>+<kbd>Enter</kbd> lub <kbd>Spacja</kbd> (start/stop), <kbd>P</kbd> (pauza/wznów)</p>
+                </div>
+
+                <!-- KARTA 1C: WYNIKI OBLICZEŃ -->
+                <div id="calcResults" class="card card-results">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon-svg emerald" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                                </svg>
+                            </div>
+                            <h2>Wyniki Obliczeń</h2>
+                        </div>
+                        <span class="card-subtitle">Wyliczone parametry produkcyjne</span>
+                    </div>
+
+                    <div class="metrics-grid">
+                        <div class="metric-tile highlight-green">
+                            <span class="metric-label">Ustaw licznik na</span>
+                            <strong id="out-counter" class="metric-value">-</strong>
+                        </div>
+                        <div class="metric-tile">
+                            <span class="metric-label">Ilość szpul</span>
+                            <strong id="out-spools" class="metric-value">-</strong>
+                        </div>
+                        <div class="metric-tile">
+                            <span class="metric-label">Rodzaj przędzy</span>
+                            <strong id="out-dtex" class="metric-value">-</strong>
+                        </div>
+                        <div class="metric-tile">
+                            <span class="metric-label">Waga 1 sztuki</span>
+                            <strong id="out-unit-weight" class="metric-value">-</strong>
+                        </div>
+                        <div class="metric-tile highlight-cyan">
+                            <span class="metric-label">Waga zlecenia</span>
+                            <strong id="out-weight" class="metric-value">-</strong>
+                        </div>
+                        <div class="metric-tile highlight-amber">
+                            <span class="metric-label">Wymiana szpul co</span>
+                            <strong id="out-exchange" class="metric-value">-</strong>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEKCJA 2: HISTORIA I STATYSTYKI -->
+            <section id="sec-history" class="app-section" role="tabpanel" aria-labelledby="tab-hist" hidden>
+
+                <!-- KARTA 2A: PULPIT KPI STATYSTYK -->
+                <div class="card card-stats">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon-svg amber" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                    <polyline points="17 6 23 6 23 12"></polyline>
+                                </svg>
+                            </div>
+                            <h2>Statystyki Produkcji</h2>
+                        </div>
+                        <span id="stat-shift-subtitle" class="card-subtitle">Bieżąca zmiana / Całość</span>
+                    </div>
+
+                    <div class="stats-grid stats-grid-4">
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper cyan" aria-hidden="true">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line>
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                                </svg>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label">Wykonane Sztuki</span>
+                                <div class="stat-value" id="stat-pieces">-</div>
+                                <span class="stat-subtext">Zmiana / Całość</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper emerald" aria-hidden="true">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M12 3v18M6 8l6-5 6 5M6 8l-4 7h8L6 8zm12 0l-4 7h8l-4-7z"></path>
+                                </svg>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label">Waga Wyrobów</span>
+                                <div class="stat-value" id="stat-weight">-</div>
+                                <span class="stat-subtext">Zmiana / Całość</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper amber" aria-hidden="true">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                </svg>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label">Efektywność Netto</span>
+                                <div class="stat-value" id="stat-efficiency">-</div>
+                                <span class="stat-subtext">Norma vs Netto (Zmiana)</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper danger-icon" aria-hidden="true">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="6" y="4" width="4" height="16"></rect>
+                                    <rect x="14" y="4" width="4" height="16"></rect>
+                                </svg>
+                            </div>
+                            <div class="stat-details">
+                                <span class="stat-label">Postoje Technologiczne</span>
+                                <div class="stat-value" id="stat-downtime">-</div>
+                                <span class="stat-subtext">Zmiana / Całość</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KARTA 2A-BIS: WYKRES TRENDU 7 DNI (NATYWNY SVG) -->
+                <div class="card card-chart">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-icon-svg emerald" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                                </svg>
+                            </div>
+                            <h2>Trend 7 dni (Waga [kg] i Wydajność [%])</h2>
+                        </div>
+                        <span id="trendChartSummary" class="card-subtitle">Ostatnie 7 dni roboczych</span>
+                    </div>
+                    <div id="trendChartContainer" class="trend-chart-container"></div>
+                    <div class="chart-legend">
+                        <span class="legend-item"><span class="legend-swatch swatch-bar"></span>Waga dziennie [kg]</span>
+                        <span class="legend-item"><span class="legend-swatch swatch-line"></span>Wydajność [%]</span>
+                        <span class="legend-item"><span class="legend-swatch swatch-ref"></span>Cel 100%</span>
+                    </div>
+                </div>
+
+                <!-- KARTA 2B: DZIENNIK PRODUKCJI -->
+                <div class="card card-history">
+                    <!-- BLOK PODSUMOWANIA WIDOCZNY WYŁĄCZNIE NA WYDRUKU -->
+                    <div id="printReportSummary" class="print-report-summary">
+                        <div class="print-report-title">Antygravity Czasomierz v3 — Raport Produkcji</div>
+                        <div id="print-meta-line" class="print-meta-line"></div>
+                        <div id="print-kpi-line" class="print-kpi-line"></div>
+                    </div>
+
+                    <div class="history-header">
+                        <div class="card-title">
+                            <div class="card-icon-svg cyan" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                            </div>
+                            <h2>Dziennik Produkcji</h2>
+                        </div>
+
+                        <div class="history-controls-bar">
+                            <div class="search-wrapper">
+                                <label for="historySearch" class="sr-only">Szukaj w historii</label>
+                                <input type="search" id="historySearch" placeholder="Szukaj (10t, 2.5m, M-01, notatka)..."
+                                    class="input-search" title="Szukaj w historii">
+                            </div>
+                            <div class="filter-wrapper">
+                                <label for="historyStationFilter" class="sr-only">Filtruj po stanowisku</label>
+                                <select id="historyStationFilter" class="select-compact" title="Filtruj po stanowisku">
+                                    <option value="all" selected>Wszystkie stanowiska</option>
+                                </select>
+                            </div>
+                            <div class="filter-wrapper">
+                                <label for="historyFilter" class="sr-only">Filtruj zakres czasu</label>
+                                <select id="historyFilter" class="select-compact" title="Filtruj zakres czasu">
+                                    <option value="shift" selected>Bieżąca zmiana</option>
+                                    <option value="today">Dzisiaj (wszystkie zmiany)</option>
+                                    <option value="yesterday">Wczoraj</option>
+                                    <option value="week">Ten tydzień</option>
+                                    <option value="month">Ten miesiąc</option>
+                                    <option value="all">Wszystkie wpisy</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KONTENER NA LISTĘ ZLECEŃ -->
+                    <div id="history-list" class="history-list-container"></div>
+
+                    <!-- NARZĘDZIA AKCJI I EKSPORTU -->
+                    <div class="history-toolbar">
+                        <button type="button" id="btnClearHistory" class="btn btn-secondary btn-sm">
+                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"></path>
+                            </svg>
+                            <span>Wyczyść historię</span>
+                        </button>
+
+                        <div class="toolbar-group">
+                            <button type="button" id="btnPrintReport" class="btn btn-outline btn-sm">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                                    <rect x="6" y="14" width="12" height="8"></rect>
+                                </svg>
+                                <span>Drukuj Raport</span>
+                            </button>
+
+                            <button type="button" id="btnExportFilteredCSV" class="btn btn-outline btn-sm"
+                                title="Eksportuj do CSV wyłącznie wpisy widoczne po filtrowaniu">
+                                <span>CSV (Widok)</span>
+                            </button>
+
+                            <button type="button" id="btnExportCSV" class="btn btn-outline btn-sm"
+                                title="Eksportuj całą historię do CSV">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
+                                </svg>
+                                <span>CSV (Całość)</span>
+                            </button>
+
+                            <button type="button" id="btnExportJSON" class="btn btn-outline btn-sm">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
+                                </svg>
+                                <span>Eksport JSON</span>
+                            </button>
+
+                            <button type="button" id="btnImportJSON" class="btn btn-outline btn-sm">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path>
+                                </svg>
+                                <span>Import JSON</span>
+                            </button>
+                            <input type="file" id="importFile" accept=".json" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- SEKCJA 3: PROSTY TIMER -->
+            <section id="sec-simple-timer" class="app-section" role="tabpanel" aria-labelledby="tab-simple-timer" hidden>
+                <div class="card card-timer card-simple-timer-modern">
+                    <div class="card-header" style="width: 100%;">
+                        <div class="card-title">
+                            <div class="card-icon-svg emerald" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                            <h2>Prosty Timer Produkcyjny</h2>
+                        </div>
+                        <span class="card-subtitle">Szybkie odliczanie, postoje i kontrola normy czasu</span>
+                    </div>
+
+                    <!-- SZYBKIE PRESETY CZASU -->
+                    <div id="simplePresetsBox" class="simple-presets-wrapper">
+                        <span class="presets-label">Szybki wybór normy czasu:</span>
+                        <div class="presets-grid">
+                            <button type="button" class="preset-pill" data-preset-hours="0.0833"
+                                data-preset-minutes="5" data-preset-label="5 min">5 min</button>
+                            <button type="button" class="preset-pill" data-preset-hours="0.25"
+                                data-preset-minutes="15" data-preset-label="15 min">15 min</button>
+                            <button type="button" class="preset-pill" data-preset-hours="0.5"
+                                data-preset-minutes="30" data-preset-label="30 min">30 min</button>
+                            <button type="button" class="preset-pill" data-preset-hours="0.75"
+                                data-preset-minutes="45" data-preset-label="45 min">45 min</button>
+                            <button type="button" class="preset-pill" data-preset-hours="1.0"
+                                data-preset-minutes="60" data-preset-label="1 godz">1 godz</button>
+                            <button type="button" class="preset-pill" data-preset-hours="2.0"
+                                data-preset-minutes="120" data-preset-label="2 godz">2 godz</button>
+                        </div>
+                    </div>
+
+                    <form id="simpleFormBox" class="inputs-form-grid simple-input-grid" novalidate>
+                        <div class="input-group">
+                            <div class="label-row">
+                                <label for="simpleTimeInput">
+                                    <span>Zadany czas normatywny</span>
+                                </label>
+                                <button type="button" class="unit-toggle-btn" data-time-unit-toggle
+                                    aria-pressed="false"
+                                    title="Przełącz jednostkę między godzinami dziesiętnymi a minutami">
+                                    <span class="unit-toggle-pill active" data-unit-opt="hours">godz</span>
+                                    <span class="unit-toggle-pill" data-unit-opt="minutes">min</span>
+                                </button>
+                            </div>
+                            <div class="simple-input-wrapper">
+                                <input type="number" id="simpleTimeInput" step="any" min="0.01"
+                                    placeholder="np. 0.5 (30 min)" inputmode="decimal" required
+                                    data-error="simpleTimeInput-error">
+                                <div id="simpleTimeHelper" class="simple-time-helper" aria-hidden="true">-- min</div>
+                            </div>
+                            <div id="simpleTimeInput-error" class="field-error">
+                                <span class="field-error-icon" role="img" aria-label="Błąd">⚠</span>
+                                <span id="simpleTimeInput-error-text">Podaj dodatni czas normatywny w godzinach (np. 0.5).</span>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="simpleNote">
+                                <span>Notatka / opis</span>
+                                <span class="unit-tag">[ opcjonalnie ]</span>
+                            </label>
+                            <input type="text" id="simpleNote" maxlength="120"
+                                placeholder="np. Przezbrojenie, wymiana szpul..." autocomplete="off">
+                        </div>
+                    </form>
+
+                    <!-- PASEK NOTATKI AKTYWNEGO PROSTEGO TIMERA -->
+                    <div id="simpleActiveNoteBar" class="active-order-summary simple-active-note" hidden>
+                        <div class="summary-note-row">
+                            <span class="summary-note-label">Notatka:</span>
+                            <span id="simple-summary-note" class="summary-note-text"></span>
+                        </div>
+                    </div>
+
+                    <!-- BANER POSTOJU DLA PROSTEGO TIMERA -->
+                    <div id="simplePauseBanner" class="pause-banner" hidden role="status" aria-live="polite">
+                        <div class="pause-banner-info">
+                            <span class="pause-dot" aria-hidden="true"></span>
+                            <span>POSTÓJ: <strong id="simplePauseReasonText">Postój technologiczny</strong></span>
+                        </div>
+                        <strong id="simplePauseTimerText" class="pause-banner-clock">00:00:00</strong>
+                    </div>
+
+                    <!-- WYŁĄCZNIK ALARMU DLA PROSTEGO TIMERA -->
+                    <div class="alarm-control-box">
+                        <button type="button" id="simpleStopAlarmBtn" class="btn btn-danger pulsing"
+                            style="display: none;">
+                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                <line x1="2" y1="2" x2="22" y2="22"></line>
+                            </svg>
+                            <span>Wyłącz alarm dźwiękowy</span>
+                        </button>
+                    </div>
+
+                    <!-- KOREKTA CZASU DLA PROSTEGO TIMERA -->
+                    <div id="simpleTimerAdjustControls" class="timer-adjust-controls" style="display: none;">
+                        <button type="button" class="btn btn-secondary btn-sm" data-adjust-simple="-5"
+                            title="Odejmij 5 minut">-5m</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-adjust-simple="-1"
+                            title="Odejmij 1 minutę">-1m</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-adjust-simple="1"
+                            title="Dodaj 1 minutę">+1m</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-adjust-simple="5"
+                            title="Dodaj 5 minut">+5m</button>
+                    </div>
+
+                    <!-- ZEGAR PIERŚCIENIOWY PROSTEGO TIMERA -->
+                    <div class="timer-display-wrapper">
+                        <svg class="progress-ring" width="260" height="260" aria-hidden="true">
+                            <circle class="progress-ring__circle-bg" stroke-width="10"
+                                fill="transparent" r="120" cx="130" cy="130" />
+                            <circle id="simpleProgressRingCircle" class="progress-ring__circle"
+                                stroke-width="10" stroke-linecap="round" fill="transparent" r="120" cx="130" cy="130"
+                                stroke-dasharray="753.982" stroke-dashoffset="0" />
+                        </svg>
+                        <div class="clock-inner">
+                            <span class="clock-label">POZOSTAŁY CZAS</span>
+                            <div id="simpleClockDisplay">00:00:00</div>
+                            <div id="simpleEfficiencyDisplay" class="efficiency-badge">
+                                Wydajność: ---%
+                            </div>
+                            <div class="time-badges-row">
+                                <div id="simpleStartTimeDisplay" class="end-time-badge" style="display: none;">Start: --:--</div>
+                                <div id="simpleEndTimeDisplay" class="end-time-badge">Koniec: --:--:--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="simpleStatusMessage" class="status-message" role="status" aria-live="polite"></div>
+
+                    <div class="timer-controls">
+                        <button type="button" id="simpleStartBtn" class="btn btn-primary btn-lg">
+                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                            <span>Rozpocznij odliczanie</span>
+                        </button>
+
+                        <div class="timer-running-actions">
+                            <button type="button" id="simplePauseBtn" class="btn btn-amber btn-lg" style="display: none;">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="6" y="4" width="4" height="16"></rect>
+                                    <rect x="14" y="4" width="4" height="16"></rect>
+                                </svg>
+                                <span>Pauza / Postój</span>
+                            </button>
+
+                            <button type="button" id="simpleResumeBtn" class="btn btn-primary btn-lg" style="display: none;">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                </svg>
+                                <span>Wznów pracę</span>
+                            </button>
+
+                            <button type="button" id="simpleStopBtn" class="btn btn-danger btn-lg" style="display: none;">
+                                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                                </svg>
+                                <span>Zakończ i Zapisz</span>
+                            </button>
+                        </div>
+
+                        <button type="button" id="simpleCancelBtn" class="btn btn-outline btn-sm btn-cancel-run" style="display: none;">
+                            Anuluj odliczanie (bez zapisu)
+                        </button>
+                    </div>
+                    <p class="shortcut-hint">Skróty: <kbd>Ctrl</kbd>+<kbd>Enter</kbd> lub <kbd>Spacja</kbd> (start/stop), <kbd>P</kbd> (pauza/wznów)</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- PRZEŁĄCZNIK ZAKŁADEK -->
+        <nav class="mobile-tabs-nav" aria-label="Nawigacja po zakładkach" role="tablist">
+            <button type="button" id="tab-calc" class="tab-btn active" role="tab" aria-selected="true"
+                aria-controls="sec-calculator" tabindex="0">
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                    <line x1="8" y1="6" x2="16" y2="6"></line>
+                    <line x1="16" y1="14" x2="16" y2="18"></line>
+                    <path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"></path>
+                </svg>
+                <span>Kalkulator &amp; Timer</span>
+            </button>
+            <button type="button" id="tab-simple-timer" class="tab-btn" role="tab" aria-selected="false"
+                aria-controls="sec-simple-timer" tabindex="-1">
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>Prosty Timer</span>
+            </button>
+            <button type="button" id="tab-hist" class="tab-btn" role="tab" aria-selected="false"
+                aria-controls="sec-history" tabindex="-1">
+                <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+                <span>Dziennik &amp; Statystyki</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- MODAL WYBORU POWODU POSTOJU / PAUZY -->
+    <dialog id="downtime-modal" class="modal-dialog" closedby="any" aria-labelledby="downtime-modal-title">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="downtime-modal-title">Wybierz powód postoju</h2>
+                <button type="button" id="btnCloseDowntimeModal" class="btn-close-modal" aria-label="Zamknij"
+                    title="Zamknij">✕</button>
+            </div>
+            <p class="confirm-dialog-message">Czas odliczania normy zostanie zatrzymany na czas postoju, a jego długość zapisze się osobno w raporcie zmiany.</p>
+            <div id="downtime-reasons-grid" class="downtime-reasons-grid"></div>
+            <div class="modal-footer">
+                <button type="button" id="btnCancelDowntime" class="btn btn-secondary">Anuluj</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- MODAL PANELU TECHNOLOGA (USTAWIENIA + TABELA TONAŻY) -->
+    <dialog id="settings-modal" class="modal-dialog settings-dialog" closedby="any" aria-labelledby="settings-modal-title">
+        <div class="modal-card settings-modal-card">
+            <div class="modal-header">
+                <h2 id="settings-modal-title">Panel Technologa — Ustawienia i Tabela Tonaży</h2>
+                <button type="button" id="btnCloseSettingsModal" class="btn-close-modal" aria-label="Zamknij ustawienia"
+                    title="Zamknij">✕</button>
+            </div>
+
+            <div class="settings-body">
+                <form id="settings-general-form" class="settings-section">
+                    <h3>Norma zmiany i stanowiska</h3>
+                    <div class="settings-grid-2">
+                        <div class="input-group">
+                            <label for="cfg-daily-norm">Norma czasu zmiany [ min ]:</label>
+                            <input type="number" id="cfg-daily-norm" min="30" max="1440" step="1" value="450">
+                        </div>
+                        <div class="input-group">
+                            <label for="cfg-stations-list">Stanowiska / maszyny (po przecinku):</label>
+                            <input type="text" id="cfg-stations-list" placeholder="M-01, M-02, Roblon 1...">
+                        </div>
+                    </div>
+                    <div class="settings-actions-inline">
+                        <button type="submit" class="btn btn-primary btn-sm">Zapisz ustawienia ogólne</button>
+                    </div>
+                </form>
+
+                <div class="settings-section">
+                    <div class="settings-section-head">
+                        <h3>Tabela tonaży (TONNAGE_DB)</h3>
+                        <button type="button" id="btnResetTonnageDb" class="btn btn-outline btn-xs">Przywróć fabryczne</button>
+                    </div>
+
+                    <form id="settings-tonnage-form" class="tonnage-edit-grid">
+                        <div class="input-group">
+                            <label for="cfg-ton-key">Tonaż [t]</label>
+                            <input type="number" id="cfg-ton-key" step="0.5" min="0.5" placeholder="np. 10.0">
+                        </div>
+                        <div class="input-group">
+                            <label for="cfg-ton-spools">Szpule</label>
+                            <input type="number" id="cfg-ton-spools" step="1" min="1" placeholder="4">
+                        </div>
+                        <div class="input-group">
+                            <label for="cfg-ton-cnt1">Licz. 1m</label>
+                            <input type="number" id="cfg-ton-cnt1" step="1" min="0" placeholder="30">
+                        </div>
+                        <div class="input-group">
+                            <label for="cfg-ton-cnt2">Licz. 2m</label>
+                            <input type="number" id="cfg-ton-cnt2" step="1" min="0" placeholder="60">
+                        </div>
+                        <div class="input-group">
+                            <label for="cfg-ton-wgt1">Waga 1m</label>
+                            <input type="number" id="cfg-ton-wgt1" step="0.001" min="0.001" placeholder="1.830">
+                        </div>
+                        <div class="input-group">
+                            <label for="cfg-ton-wgt2">Waga 2m</label>
+                            <input type="number" id="cfg-ton-wgt2" step="0.001" min="0.001" placeholder="3.604">
+                        </div>
+                        <div class="tonnage-form-submit">
+                            <button type="submit" class="btn btn-primary btn-sm">Dodaj / Nadpisz tonaż</button>
+                        </div>
+                    </form>
+
+                    <div class="settings-table-wrap">
+                        <table class="settings-table">
+                            <thead>
+                                <tr>
+                                    <th>Tonaż</th>
+                                    <th>Szpule</th>
+                                    <th>Licznik (1m / 2m)</th>
+                                    <th>Waga (1m / 2m)</th>
+                                    <th style="text-align: right;">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody id="settings-tonnage-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" id="btnDoneSettings" class="btn btn-secondary">Zamknij</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- MODAL EDYCJI ZLECENIA (NATYWNY <dialog>) -->
+    <dialog id="edit-modal" class="modal-dialog" closedby="any" aria-labelledby="edit-modal-title">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="edit-modal-title">Edycja Zlecenia Produkcyjnego</h2>
+                <button type="button" id="btnCloseEditModal" class="btn-close-modal" aria-label="Zamknij okno edycji"
+                    title="Zamknij">✕</button>
+            </div>
+
+            <form id="edit-form" novalidate>
+                <div class="modal-body">
+                    <input type="hidden" id="edit-id">
+                    <input type="hidden" id="edit-type" value="order">
+
+                    <div id="edit-order-fields" class="edit-order-fields">
+                        <div class="input-group">
+                            <label for="edit-ton">Tonaż [ t ]:</label>
+                            <select id="edit-ton">
+                                <option value="1.0">1.0 t</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="edit-l1">Długość L1 [ m ]:</label>
+                            <input type="number" id="edit-l1" step="any" min="0.01" inputmode="decimal" required
+                                autofocus data-error="edit-l1-error">
+                            <div id="edit-l1-error" class="field-error">
+                                <span class="field-error-icon" role="img" aria-label="Błąd">⚠</span>
+                                <span>Podaj dodatnią długość roboczą L1.</span>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="edit-pieces">Liczba sztuk [ szt ]:</label>
+                            <input type="number" id="edit-pieces" step="1" min="1" inputmode="numeric" required
+                                data-error="edit-pieces-error">
+                            <div id="edit-pieces-error" class="field-error">
+                                <span class="field-error-icon" role="img" aria-label="Błąd">⚠</span>
+                                <span>Podaj całkowitą liczbę sztuk (min. 1).</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit-time">Czas wg normy [ min ]:</label>
+                        <input type="number" id="edit-time" step="any" min="0.1" inputmode="decimal" required
+                            data-error="edit-time-error">
+                        <div id="edit-time-error" class="field-error">
+                            <span class="field-error-icon" role="img" aria-label="Błąd">⚠</span>
+                            <span>Podaj dodatni czas wg normy (min. 0.1 min).</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit-actual-time">Czas pracy netto [ min ]:</label>
+                        <input type="number" id="edit-actual-time" step="any" min="0.1" inputmode="decimal" required
+                            data-error="edit-actual-time-error">
+                        <div id="edit-actual-time-error" class="field-error">
+                            <span class="field-error-icon" role="img" aria-label="Błąd">⚠</span>
+                            <span>Podaj dodatni czas pracy netto (min. 0.1 min).</span>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid-2">
+                        <div class="input-group">
+                            <label for="edit-downtime">Postoje [ min ]:</label>
+                            <input type="number" id="edit-downtime" step="0.1" min="0" inputmode="decimal" value="0">
+                        </div>
+                        <div class="input-group">
+                            <label for="edit-station">Stanowisko:</label>
+                            <input type="text" id="edit-station" maxlength="32" placeholder="np. M-01" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="edit-note">Notatka [ opcjonalnie ]:</label>
+                        <input type="text" id="edit-note" maxlength="120"
+                            placeholder="np. Nr zlecenia lub uwaga" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" id="btnCancelEdit" class="btn btn-secondary">Anuluj</button>
+                    <button type="submit" id="btnSaveEdit" class="btn btn-primary">Zapisz Zmiany</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- DIALOG POTWIERDZENIA AKCJI (ZAMIAST window.confirm) -->
+    <dialog id="confirm-dialog" class="modal-dialog confirm-dialog" closedby="any"
+        aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-message">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="confirm-dialog-title">Potwierdź akcję</h2>
+            </div>
+            <p id="confirm-dialog-message" class="confirm-dialog-message"></p>
+            <form method="dialog" class="modal-footer">
+                <button type="submit" id="confirm-dialog-cancel" value="cancel" class="btn btn-secondary" autofocus>Anuluj</button>
+                <button type="submit" id="confirm-dialog-accept" value="confirm" class="btn btn-danger">Usuń</button>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- POJEMNIK NA POWIADOMIENIA TOAST I LIVE REGIONY -->
+    <div id="toast-container" class="toast-container" popover="manual" role="region" aria-label="Powiadomienia"></div>
+    <div id="toast-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+    <div id="validation-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"
+        integrity="sha384-mLD+wdwynYnAhgHAkdPP5hroWJXJTNy5C2OhPKM55zuiV2vjzFD1LtBohaHq2Ex8"
+        crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"
+        integrity="sha384-/SBCyt0JELVRyyrOp+QG5CdnpVoAry+uw9hdherLgyZxxePtHjOvQmJU5CHymUhT"
+        crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+
+    <!-- Moduły aplikacji v3 -->
+    <script src="js/config.js" defer></script>
+    <script src="js/ui.js" defer></script>
+    <script src="js/storage.js" defer></script>
+    <script src="js/calculator.js" defer></script>
+    <script src="js/audio.js" defer></script>
+    <script src="js/timer.js" defer></script>
+    <script src="js/charts.js" defer></script>
+    <script src="js/settings.js" defer></script>
+    <script src="js/history.js" defer></script>
+    <script src="js/app.js" defer></script>
+</body>
+
+</html>

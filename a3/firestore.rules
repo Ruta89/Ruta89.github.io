@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isValidHistoryEntry(data) {
+      return data.keys().hasOnly([
+        'id', 'type', 'dayStr', 'timeStr', 'startTimeStr', 'percentage',
+        'ton', 'l1', 'pieces', 'time', 'actualTime', 'weight', 'note',
+        'shift', 'shiftDate', 'station', 'downtimeMinutes', 'downtimes', 'spoolExchanges'
+      ])
+      && data.id is number && data.id > 0
+      && data.type in ['order', 'simple']
+      && data.time is number && data.time > 0 && data.time <= 10000
+      && data.actualTime is number && data.actualTime >= 0 && data.actualTime <= 10000
+      && (!('note' in data) || (data.note is string && data.note.size() <= 120))
+      && (!('shift' in data) || data.shift in ['I', 'II', 'III', ''])
+      && (!('shiftDate' in data) || (data.shiftDate is string && data.shiftDate.size() <= 16))
+      && (!('station' in data) || (data.station is string && data.station.size() <= 32))
+      && (!('downtimeMinutes' in data) || (data.downtimeMinutes is number && data.downtimeMinutes >= 0 && data.downtimeMinutes <= 10000))
+      && (!('downtimes' in data) || (data.downtimes is list && data.downtimes.size() <= 50))
+      && (!('spoolExchanges' in data) || (data.spoolExchanges is number && data.spoolExchanges >= 0 && data.spoolExchanges <= 1000));
+    }
+
+    match /zawiesia_history/{documentId} {
+      // Aby włączyć wymóg logowania Firebase Authentication, zamień 'true' na 'request.auth != null'
+      allow read: if true;
+      allow create, update: if isValidHistoryEntry(request.resource.data);
+      allow delete: if true;
+    }
+
+    match /zawiesia_config/{configId} {
+      allow read: if true;
+      allow write: if configId in ['tonnage_db', 'app_settings']
+        && request.resource.data.keys().size() <= 120;
+    }
+  }
+}
