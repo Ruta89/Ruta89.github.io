@@ -1,0 +1,176 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model — Antygravity Czasomierz (PWA)
+// ===============================================================
+//
+// This security rules file assumes the following data structure:
+//
+// Collection: zawiesia_history
+// Document ID: {documentId} — numeric timestamp string matching ^[0-9]{1,20}$ and equal to string(id)
+// Fields:
+//   - id: number (required, immutable, > 0, <= 9007199254740991) - Unix timestamp in ms identifying the entry
+//   - type: string (required, immutable once set, enum: ['order', 'simple']) - Entry type
+//   - dayStr: string (required, length 0..24) - Formatted production date (e.g. '25.11.2026')
+//   - timeStr: string (required, length 0..16) - Completion time HH:MM
+//   - startTimeStr: string (required, length 0..16) - Start time HH:MM or '-'
+//   - percentage: string (required, length 0..16) - Efficiency percentage string (e.g. '105%' or '-')
+//   - ton: string (required, length 1..16) - Sling tonnage key (e.g. '12.0') or 'Prosty'
+//   - l1: number | string (required, number > 0 && <= 1000, or string length 0..16 e.g. '-') - Working length L1 [m]
+//   - pieces: number | string (required, number >= 1 && <= 1000000, or string length 0..16 e.g. '-') - Piece count
+//   - time: number (required, > 0 && <= 10000) - Normative duration [min]
+//   - actualTime: number (required, >= 0 && <= 10000) - Actual elapsed duration [min]
+//   - weight: number | string (required, number >= 0 && <= 10000000, or string length 0..24 e.g. '-') - Total weight [kg]
+//   - note: string (optional, length 0..120) - Operator note / order reference
+//   - spoolExchanges: number (optional, >= 0 && <= 1000) - Recorded spool exchanges count
+//
+// All other collections and subcollections are denied by default.
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // UWAGA (Wdrożenie Firebase Auth na tabletach produkcyjnych):
+    // Obecnie aplikacja działa na tabletach halowych bez włączonego logowania Firebase Auth.
+    // Po włączeniu uwierzytelniania (np. Firebase Anonymous Auth lub kont operatorów) w konsoli Firebase,
+    // usuń `|| true` poniżej, zostawiając samo `return isAuthenticated();` (czyli `request.auth != null`).
+    function canAccessShopFloor() {
+      return isAuthenticated() || true; // PO WŁĄCZENIU FIREBASE AUTH ZAMIEŃ NA: return request.auth != null;
+    }
+
+    function hasRequiredFields(data, fields) {
+      return data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(data, fields) {
+      return data.keys().hasOnly(fields);
+    }
+
+    function isBoundedString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    // Validates numeric ID (handles both int and integer-valued float serialization in Firestore/JSON)
+    // and binds documentId strictly to data.id.
+    function isValidHistoryId(documentId, idVal) {
+      return documentId.matches('^[0-9]{1,20}$') &&
+             idVal is number &&
+             idVal > 0 &&
+             idVal <= 9007199254740991 &&
+             (
+               (idVal is int && documentId == string(idVal)) ||
+               (idVal is float && idVal == int(idVal) && documentId == string(int(idVal)))
+             );
+    }
+
+    function isValidL1(val) {
+      return (val is number && val > 0 && val <= 1000) ||
+             isBoundedString(val, 0, 16);
+    }
+
+    function isValidPieces(val) {
+      return (val is number && val >= 1 && val <= 1000000) ||
+             isBoundedString(val, 0, 16);
+    }
+
+    function isValidWeight(val) {
+      return (val is number && val >= 0 && val <= 10000000) ||
+             isBoundedString(val, 0, 24);
+    }
+
+    // ===============================================================
+    // Domain Validators (enforced on BOTH create and update)
+    // ===============================================================
+
+    function isValidHistoryEntry(documentId, data) {
+      let allowedFields = [
+        'id',
+        'type',
+        'dayStr',
+        'timeStr',
+        'startTimeStr',
+        'percentage',
+        'ton',
+        'l1',
+        'pieces',
+        'time',
+        'actualTime',
+        'weight',
+        'note',
+        'spoolExchanges'
+      ];
+      let requiredFields = [
+        'id',
+        'type',
+        'dayStr',
+        'timeStr',
+        'startTimeStr',
+        'percentage',
+        'ton',
+        'l1',
+        'pieces',
+        'time',
+        'actualTime',
+        'weight'
+      ];
+
+      return hasOnlyAllowedFields(data, allowedFields) &&
+             hasRequiredFields(data, requiredFields) &&
+             isValidHistoryId(documentId, data.id) &&
+             data.type is string &&
+             data.type in ['order', 'simple'] &&
+             isBoundedString(data.dayStr, 0, 24) &&
+             isBoundedString(data.timeStr, 0, 16) &&
+             isBoundedString(data.startTimeStr, 0, 16) &&
+             isBoundedString(data.percentage, 0, 16) &&
+             isBoundedString(data.ton, 1, 16) &&
+             isValidL1(data.l1) &&
+             isValidPieces(data.pieces) &&
+             data.time is number &&
+             data.time > 0 &&
+             data.time <= 10000 &&
+             data.actualTime is number &&
+             data.actualTime >= 0 &&
+             data.actualTime <= 10000 &&
+             isValidWeight(data.weight) &&
+             (!('note' in data) || isBoundedString(data.note, 0, 120)) &&
+             (!('spoolExchanges' in data) || (data.spoolExchanges is number && data.spoolExchanges >= 0 && data.spoolExchanges <= 1000));
+    }
+
+    function isValidHistoryUpdate(newData, existingData) {
+      return (!('id' in existingData) || newData.id == existingData.id) &&
+             (!('type' in existingData) || newData.type == existingData.type);
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    match /zawiesia_history/{documentId} {
+      // Po włączeniu Firebase Auth zamień warunek w `canAccessShopFloor()` z `true` na `request.auth != null`
+      allow read: if canAccessShopFloor();
+
+      allow create: if canAccessShopFloor() &&
+                       isValidHistoryEntry(documentId, request.resource.data);
+
+      allow update: if canAccessShopFloor() &&
+                       isValidHistoryEntry(documentId, request.resource.data) &&
+                       isValidHistoryUpdate(request.resource.data, resource.data);
+
+      allow delete: if canAccessShopFloor();
+    }
+
+    // Explicit default deny for all other collections and paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
